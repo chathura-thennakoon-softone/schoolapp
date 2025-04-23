@@ -57,4 +57,12 @@
   <ItemGroup>
     <Folder Include="Properties" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SCH.Database.Core\SCH.Database.Core.sqlproj">
+      <Name>SCH.Database.Core</Name>
+      <Project>{69c4ffec-775e-47a8-a7f5-0e2c0b5a7c8c}</Project>
+      <Private>True</Private>
+      <SuppressMissingDependenciesErrors>False</SuppressMissingDependenciesErrors>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
