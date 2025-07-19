@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SCH.Repositories\SCH.Repositories.csproj" />
+  </ItemGroup>
+
 </Project>

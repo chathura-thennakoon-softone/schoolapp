@@ -6,4 +6,19 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SCH.Repositories\SCH.Repositories.csproj" />
+    <ProjectReference Include="..\SCH.Services\SCH.Services.csproj" />
+    <ProjectReference Include="..\SCH.Shared\SCH.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
