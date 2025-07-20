@@ -1,3 +1,4 @@
+using NLog.Extensions.Logging;
 using SCH.Core.Cors;
 using SCH.Core.DependancyConfiguration;
 using SCH.Core.ErrorHandling;
@@ -12,10 +13,14 @@ builder.Services.AddAllowedOrigins(
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddServices();
-builder.Services.AddRepositories();
+ builder.Services.AddServices();builder.Services.AddRepositories();
+builder.Services.AddUtilities();
 builder.Services.AddDbContexts(builder.Configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddUnitOfWorks();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddNLog("nlog.config");
+builder.Services.AddLogger();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
