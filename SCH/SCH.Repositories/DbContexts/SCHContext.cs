@@ -1,6 +1,7 @@
 ﻿namespace SCH.Repositories.DbContexts
 {
     using Microsoft.EntityFrameworkCore;
+    using SCH.Models.Students.Entities;
 
     public class SCHContext : DbContext
     {
@@ -9,5 +10,6 @@
         {
         }
 
+        internal DbSet<Student> Student { get; set; }
     }
 }
