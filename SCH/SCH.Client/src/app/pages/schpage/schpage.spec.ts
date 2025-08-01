@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GeneralContainer } from './general-container';
+import { SCHPage } from './schpage';
 
-describe('GeneralContainer', () => {
-  let component: GeneralContainer;
-  let fixture: ComponentFixture<GeneralContainer>;
+describe('SCHPage', () => {
+  let component: SCHPage;
+  let fixture: ComponentFixture<SCHPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GeneralContainer]
+      imports: [SCHPage]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(GeneralContainer);
+    fixture = TestBed.createComponent(SCHPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
