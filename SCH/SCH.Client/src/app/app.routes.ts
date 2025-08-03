@@ -5,7 +5,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/schpage/schpage').then(
+      import('./sch/pages/schpage/schpage').then(
         (m) => m.SCHPage
       ),
     children: schRoutes
