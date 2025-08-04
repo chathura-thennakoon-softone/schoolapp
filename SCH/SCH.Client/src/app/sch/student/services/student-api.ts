@@ -7,7 +7,6 @@ import { APP_CONFIG } from '../../../injection-tokens/app-config.token';
 
 @Injectable()
 export class StudentApi {
-  
   private readonly apiUrl: string;
 
   constructor(
@@ -27,5 +26,7 @@ export class StudentApi {
     return this.http.get<Array<Student>>(`${this.apiUrl}/students`, { params });
   }
 
-
+  public deleteStudent(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/students/${id}`);
+  }
 }
