@@ -135,7 +135,7 @@ export class StudentListPage {
             }
 
             if (student.image) {
-              student.imageUrl = `${this.apiUrl}/api/Image/getStudentProfile/${student.image}`;
+              student.imageUrl = `${this.apiUrl}/Image/getStudentProfile/${student.image}`;
             } else {
               student.imageUrl = '';
             }
