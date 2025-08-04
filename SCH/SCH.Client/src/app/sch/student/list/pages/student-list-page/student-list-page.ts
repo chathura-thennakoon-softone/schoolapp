@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -10,6 +10,8 @@ import {
 import { Student } from '../../../../interfaces/student';
 import { StudentApi } from '../../../services/student-api';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AppConfig } from '../../../../../interfaces/app-config';
+import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -24,6 +26,20 @@ export class StudentListPage {
     Student,
     number | string | Date | boolean | null
   >[] = [
+    {
+      headerName: 'Photo',
+      field: 'imageUrl',
+      width: 80,
+      cellRenderer: (params: any) => {
+        if (params.value) {
+          return `<img src="${params.value}" alt="Student" style="width:40px;height:40px;border-radius:50%;" />`;
+        }
+        return '';
+      },
+      sortable: false,
+      filter: false,
+      suppressMovable: true,
+    },
     {
       headerName: 'ID',
       field: 'id',
@@ -90,12 +106,17 @@ export class StudentListPage {
   protected gridDataLoading = false;
   public isDeleting = false;
 
+  private readonly apiUrl: string;
+
   constructor(
     private readonly cdr: ChangeDetectorRef,
     private readonly router: Router,
     private readonly _avRoute: ActivatedRoute,
-    private readonly studentApi: StudentApi
-  ) {}
+    private readonly studentApi: StudentApi,
+    @Inject(APP_CONFIG) private readonly appConfig: AppConfig
+  ) {
+    this.apiUrl = this.appConfig.apiUrl;
+  }
 
   protected onGridReady(params: GridReadyEvent) {
     this.setGridData();
@@ -111,6 +132,12 @@ export class StudentListPage {
           data.forEach((student: Student) => {
             if (student.startDate) {
               student.startDate = new Date(student.startDate);
+            }
+
+            if (student.image) {
+              student.imageUrl = `${this.apiUrl}/api/Image/getStudentProfile/${student.image}`;
+            } else {
+              student.imageUrl = '';
             }
           });
 
@@ -143,7 +170,6 @@ export class StudentListPage {
   }
 
   private onDelete(student: Student): void {
-
     this.isDeleting = true;
     this.studentApi
       .deleteStudent(student.id)
