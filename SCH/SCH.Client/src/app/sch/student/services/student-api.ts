@@ -26,6 +26,21 @@ export class StudentApi {
     return this.http.get<Array<Student>>(`${this.apiUrl}/students`, { params });
   }
 
+  public getStudent(id: number): Observable<Student> {
+    return this.http.get<Student>(`${this.apiUrl}/students/${id}`);
+  }
+
+  public insertStudent(student: Student): Observable<number> {
+    return this.http.post<number>(`${this.apiUrl}/students`, student);
+  }
+
+  public updateStudent(student: Student): Observable<void> {
+    return this.http.patch<void>(
+      `${this.apiUrl}/students/${student.id}`,
+      student
+    );
+  }
+
   public deleteStudent(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/students/${id}`);
   }

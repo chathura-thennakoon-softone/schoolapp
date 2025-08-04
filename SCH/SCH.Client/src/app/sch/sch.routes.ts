@@ -1,6 +1,7 @@
 import { Routes } from "@angular/router";
 import { studentRoutes } from './student/student.routes';
 import { StudentApi } from "./student/services/student-api";
+import { ImageApi } from "./services/image-api";
 
 export const schRoutes: Routes = [
   {
@@ -15,6 +16,10 @@ export const schRoutes: Routes = [
         provide: StudentApi,
         useClass: StudentApi
       },
+      {
+        provide: ImageApi,
+        useClass: ImageApi
+      }
     ],
     children: studentRoutes
   }
