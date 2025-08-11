@@ -13,6 +13,7 @@ import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
 import { AppConfig } from '../../../../../interfaces/app-config';
 import { ImageApi } from '../../../../services/image-api';
 import { CommonModule, formatDate } from '@angular/common';
+import { Notification } from '../../../../../services/notification';
 
 @Component({
   selector: 'sch-student-detail-page',
@@ -44,7 +45,8 @@ export class StudentDetailPage {
     private readonly cdr: ChangeDetectorRef,
     private readonly studentApi: StudentApi,
     private readonly imageApi: ImageApi,
-    @Inject(APP_CONFIG) private readonly appConfig: AppConfig
+    @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
+    private readonly notification: Notification
   ) {
     this.apiUrl = this.appConfig.apiUrl;
     this.studentForm = this.fb.group({
@@ -201,11 +203,17 @@ export class StudentDetailPage {
       this.isStudentSaving = true;
       this.studentApi
         .updateStudent(student)
-        .subscribe(() => {
-          if (this.isImageChanged && this.student!.image) {
-            this.deleteImage(this.student!.image);
-          }
-          this.setStudent();
+        .subscribe({
+          next: () => {
+            if (this.isImageChanged && this.student!.image) {
+              this.deleteImage(this.student!.image);
+            }
+            this.setStudent();
+            this.notification.success('Student updated successfully');
+          },
+          error: (error) => {
+            this.notification.error('Failed to update student');
+          },
         })
         .add(() => {
           this.isStudentSaving = false;
@@ -214,8 +222,14 @@ export class StudentDetailPage {
       this.isStudentSaving = true;
       this.studentApi
         .insertStudent(student)
-        .subscribe((id) => {
-          this.router.navigate(['../', id], { relativeTo: this._avRoute });
+        .subscribe({
+          next: (id) => {
+            this.router.navigate(['../', id], { relativeTo: this._avRoute });
+            this.notification.success('Student added successfully');
+          },
+          error: (error) => {
+            this.notification.error('Failed to add student');
+          },
         })
         .add(() => {
           this.isStudentSaving = false;
@@ -256,9 +270,9 @@ export class StudentDetailPage {
       const mimeTypePattern = /image\/*/;
       const bannerImageFileMaxSize = 2097152;
       if (mimeTypePattern.exec(mimeType) === null || !type) {
-        console.log('File type should be JPG, JPEG or PNG');
+        this.notification.error('File type should be JPG, JPEG or PNG');
       } else if (fileSize > bannerImageFileMaxSize) {
-        console.log('Please upload a file that not exceed 2MB');
+        this.notification.error('Please upload a file that not exceed 2MB');
       } else {
         const reader = new FileReader();
         reader.readAsDataURL(file);
