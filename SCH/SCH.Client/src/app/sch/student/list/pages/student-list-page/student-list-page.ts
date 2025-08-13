@@ -16,6 +16,8 @@ import { ImageApi } from '../../../../services/image-api';
 import { catchError } from 'rxjs/internal/operators/catchError';
 import { concatMap, from, mergeMap, of } from 'rxjs';
 import { Notification } from '../../../../../services/notification';
+import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -119,7 +121,8 @@ export class StudentListPage {
     private readonly studentApi: StudentApi,
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly imageApi: ImageApi,
-    private readonly notification: Notification
+    private readonly notification: Notification,
+    @Inject(MatDialog) private readonly dialog: MatDialog
   ) {
     this.apiUrl = this.appConfig.apiUrl;
   }
@@ -176,10 +179,18 @@ export class StudentListPage {
   }
 
   protected onRemoveAll(): void {
-    const confirmed = confirm('Are you sure you want to remove all students?');
-    if (confirmed) {
-      this.onDeletes(this.rowData);
-    }
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      data: {
+        message: 'Are you sure you want to remove all students?',
+        cancelText: 'Cancel',
+        confirmText: 'Delete',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.onDeletes(this.rowData);
+      }
+    });
   }
 
   private onDeletes(students: Student[]): void {
