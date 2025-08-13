@@ -3,6 +3,11 @@
   [disabled]="gridDataLoading || isDeleting"
 >Add</button>
 
+<button
+  (click)="onRemoveAll()"
+  [disabled]="gridDataLoading || isDeleting || rowData.length === 0"
+>Remove All</button>
+
 <div class="content">
   <!-- The AG Grid component, with Dimensions, CSS Theme, Row Data, and Column Definition -->
   <ag-grid-angular

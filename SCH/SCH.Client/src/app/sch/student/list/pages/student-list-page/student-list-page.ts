@@ -12,6 +12,10 @@ import { StudentApi } from '../../../services/student-api';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../../../../interfaces/app-config';
 import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
+import { ImageApi } from '../../../../services/image-api';
+import { catchError } from 'rxjs/internal/operators/catchError';
+import { concatMap, from, mergeMap, of } from 'rxjs';
+import { Notification } from '../../../../../services/notification';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -113,7 +117,9 @@ export class StudentListPage {
     private readonly router: Router,
     private readonly _avRoute: ActivatedRoute,
     private readonly studentApi: StudentApi,
-    @Inject(APP_CONFIG) private readonly appConfig: AppConfig
+    @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
+    private readonly imageApi: ImageApi,
+    private readonly notification: Notification
   ) {
     this.apiUrl = this.appConfig.apiUrl;
   }
@@ -158,7 +164,7 @@ export class StudentListPage {
       if (target.dataset['action'] === 'edit') {
         this.onEdit(event.data);
       } else if (target.dataset['action'] === 'delete') {
-        this.onDelete(event.data);
+        this.onDeletes([event.data]);
       }
     }
   }
@@ -169,15 +175,39 @@ export class StudentListPage {
     });
   }
 
-  private onDelete(student: Student): void {
+  protected onRemoveAll(): void {
+    const confirmed = confirm('Are you sure you want to remove all students?');
+    if (confirmed) {
+      this.onDeletes(this.rowData);
+    }
+  }
+
+  private onDeletes(students: Student[]): void {
     this.isDeleting = true;
-    this.studentApi
-      .deleteStudent(student.id)
-      .subscribe(() => {
-        this.setGridData();
-      })
-      .add(() => {
-        this.isDeleting = false;
+
+    from(students)
+      .pipe(
+        concatMap((student) => {
+          if (student.image) {
+            return this.imageApi.deleteStudentProfile(student.image).pipe(
+              catchError(() => of(null)),
+              mergeMap(() => this.studentApi.deleteStudent(student.id))
+            );
+          } else {
+            return this.studentApi.deleteStudent(student.id);
+          }
+        })
+      )
+      .subscribe({
+        complete: () => {
+          this.setGridData();
+          this.notification.success('Student deleted successfully');
+          this.isDeleting = false;
+        },
+        error: (err) => {
+          this.notification.error('Failed to delete student');
+          this.isDeleting = false;
+        },
       });
   }
 
