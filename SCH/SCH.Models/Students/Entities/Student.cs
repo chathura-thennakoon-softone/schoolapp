@@ -19,5 +19,7 @@
         public DateTime? StartDate { get; set; }
 
         public bool IsActive { get; set; }
+
+        public required ICollection<StudentCourseMap> StudentCourses { get; set; }
     }
 }

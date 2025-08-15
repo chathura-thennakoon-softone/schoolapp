@@ -79,7 +79,8 @@
                 IsActive = student.IsActive,
                 PhoneNumber = student.PhoneNumber,
                 SSN = student.SSN,
-                StartDate = student.StartDate
+                StartDate = student.StartDate,
+                StudentCourses = new List<StudentCourseMap>()
             };
 
             await studentsRepository.InsertStudentAsync(studentEntity);

@@ -62,9 +62,12 @@
     <Folder Include="PostScript\MockData" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="dbo\Tables\Student.sql" />
+    <PostDeploy Include="PostScript\MockData\Script.PostDeployment.StudentPopulate.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="PostScript\MockData\Script.PostDeployment.StudentPopulate.sql" />
+    <Build Include="dbo\Tables\StudentCourseMap.sql" />
+    <Build Include="dbo\Tables\Student.sql" />
+    <Build Include="dbo\Tables\Course.sql" />
+    <Build Include="dbo\Tables\__EFMigrationsHistory.sql" />
   </ItemGroup>
 </Project>
