@@ -1,5 +1,8 @@
-﻿namespace SCH.Models.Students.Entities
+﻿namespace SCH.Models.StudentCourseMap.Entities
 {
+    using SCH.Models.Courses.Entities;
+    using SCH.Models.Students.Entities;
+
     public class StudentCourseMap
     {
         public int StudentId { get; set; }

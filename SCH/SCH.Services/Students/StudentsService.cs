@@ -1,5 +1,6 @@
 ﻿namespace SCH.Services.Students
 {
+    using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Students.ClientDtos;
     using SCH.Models.Students.Entities;
     using SCH.Repositories.Students;

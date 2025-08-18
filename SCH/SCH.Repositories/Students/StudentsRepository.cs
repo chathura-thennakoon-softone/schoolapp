@@ -3,7 +3,6 @@
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Students.Entities;
     using SCH.Repositories.DbContexts;
-    using SCH.Shared.Exceptions;
     using System.Collections.Generic;
 
     internal class StudentsRepository: IStudentsRepository

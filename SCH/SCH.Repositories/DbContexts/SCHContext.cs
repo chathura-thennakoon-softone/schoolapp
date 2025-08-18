@@ -1,6 +1,8 @@
 ﻿namespace SCH.Repositories.DbContexts
 {
     using Microsoft.EntityFrameworkCore;
+    using SCH.Models.Courses.Entities;
+    using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Students.Entities;
 
     public class SCHContext : DbContext
