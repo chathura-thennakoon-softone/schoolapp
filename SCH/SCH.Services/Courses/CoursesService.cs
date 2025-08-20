@@ -60,7 +60,7 @@
             {
                 Id = 0,
                 Name = course.Name,
-                StudentCourses = new List<StudentCourseMap>()
+                StudentCourseMaps = new List<StudentCourseMap>()
             };
 
             await coursesRepository.InsertCourseAsync(courseEntity);

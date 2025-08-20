@@ -1,5 +1,7 @@
 ﻿namespace SCH.Models.Students.ClientDtos
 {
+    using SCH.Models.StudentCourseMap.ClientDtos;
+
     public class StudentDto
     {
         public int Id { get; set; }
@@ -19,5 +21,8 @@
         public DateTime? StartDate { get; set; }
 
         public bool IsActive { get; set; }
+
+        public List<StudentCourseMapDto> Courses { get; set; } 
+            = new List<StudentCourseMapDto>();
     }
 }

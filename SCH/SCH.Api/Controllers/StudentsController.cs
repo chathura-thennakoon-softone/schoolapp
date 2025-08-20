@@ -4,6 +4,7 @@ namespace SCH.API.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
     using SCH.Models.Students.ClientDtos;
+    using SCH.Models.StudentCourseMap.ClientDtos;
     using SCH.Services.Students;
     using SCH.Shared.Exceptions;
 
@@ -91,6 +92,67 @@ namespace SCH.API.Controllers
 
             await studentsService
                 .DeleteStudentAsync(id);
+
+            return Ok();
+        }
+
+        [HttpGet("{id}/courses")]
+        public async Task<IActionResult> GetCoursesAsync(int id)
+        {
+            if (id < 1)
+            {
+                throw SCHDomainException.BadRequest("Id should grater than 0");
+            }
+
+            List<StudentCourseMapDto> courses = await studentsService
+                .GetCoursesAsync(id);
+
+            return Ok(courses);
+        }
+
+        [HttpPut("{id}/courses/{courseId}")]
+        public async Task<IActionResult> PutCourseAsync(
+            int id, 
+            int courseId, 
+            [FromBody] StudentCourseMapDto studentCourseMap)
+        {
+            if (id < 1)
+            {
+                throw SCHDomainException.BadRequest("Id should grater than 0");
+            }
+
+            if (courseId < 1)
+            {
+                throw SCHDomainException.BadRequest("Course Id should grater than 0");
+            }
+
+            if (studentCourseMap == null) 
+            {
+                throw SCHDomainException.BadRequest("Student course map is not set");
+            }
+
+            studentCourseMap.CourseId = courseId;
+            studentCourseMap.StudentId = id;
+
+            await studentsService.InsertCourseAsync(studentCourseMap);
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}/courses/{courseId}")]
+        public async Task<IActionResult> DeleteCourseAsync(int id, int courseId)
+        {
+            if (id < 1)
+            {
+                throw SCHDomainException.BadRequest("Id should grater than 0");
+            }
+
+            if (courseId < 1)
+            {
+                throw SCHDomainException.BadRequest("Course Id should grater than 0");
+            }
+
+            await studentsService.DeleteCourseAsync(id, courseId);
 
             return Ok();
         }

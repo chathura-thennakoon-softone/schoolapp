@@ -18,7 +18,8 @@
         {
 
             List<Student> students = await context
-                .Student.Where(s => !isActive.HasValue || s.IsActive == isActive)
+                .Student
+                .Where(s => !isActive.HasValue || s.IsActive == isActive)
                 .ToListAsync();
 
             return students;
@@ -27,7 +28,10 @@
         public async Task<Student?> GetStudentAsync(int id)
         {
             Student? student = await context
-                .Student.SingleOrDefaultAsync(s => s.Id == id);
+                .Student
+                .Include(s => s.StudentCourseMaps)
+                .ThenInclude(sc => sc.Course)
+                .SingleOrDefaultAsync(s => s.Id == id);
 
             return student;
         }

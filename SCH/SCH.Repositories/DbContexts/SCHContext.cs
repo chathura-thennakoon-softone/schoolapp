@@ -44,12 +44,12 @@
 
             modelBuilder.Entity<StudentCourseMap>()
                 .HasOne(sc => sc.Student)
-                .WithMany(s => s.StudentCourses)
+                .WithMany(s => s.StudentCourseMaps)
                 .HasForeignKey(sc => sc.StudentId);
 
             modelBuilder.Entity<StudentCourseMap>()
                 .HasOne(sc => sc.Course)
-                .WithMany(c => c.StudentCourses)
+                .WithMany(c => c.StudentCourseMaps)
                 .HasForeignKey(sc => sc.CourseId);
         }
     }

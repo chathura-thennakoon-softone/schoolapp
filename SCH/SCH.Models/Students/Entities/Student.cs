@@ -22,6 +22,6 @@
 
         public bool IsActive { get; set; }
 
-        public required ICollection<StudentCourseMap> StudentCourses { get; set; }
+        public required ICollection<StudentCourseMap> StudentCourseMaps { get; set; }
     }
 }
