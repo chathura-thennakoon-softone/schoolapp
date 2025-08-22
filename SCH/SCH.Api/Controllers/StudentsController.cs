@@ -7,6 +7,7 @@ namespace SCH.API.Controllers
     using SCH.Models.StudentCourseMap.ClientDtos;
     using SCH.Services.Students;
     using SCH.Shared.Exceptions;
+    using System;
 
     [Route("api/[controller]")]
     [ApiController]
@@ -59,6 +60,8 @@ namespace SCH.API.Controllers
         [HttpPost]
         public async Task<IActionResult> PostStudentAsync([FromBody] StudentDto student)
         {
+            ValidateCourses(student);
+
             int id = await studentsService
                 .InsertStudentAsync(student);
 
@@ -73,6 +76,8 @@ namespace SCH.API.Controllers
             {
                 throw SCHDomainException.BadRequest("Id should grater than 0");
             }
+
+            ValidateCourses(student);
 
             student.Id = id;
             await studentsService
@@ -155,6 +160,17 @@ namespace SCH.API.Controllers
             await studentsService.DeleteCourseAsync(id, courseId);
 
             return Ok();
+        }
+
+        private void ValidateCourses(StudentDto student)
+        {
+            if (student.Courses.Count > 0
+                && student.Courses
+                .GroupBy(c => c.CourseId).Any(g => g.Count() > 1))
+            {
+                throw SCHDomainException
+                    .BadRequest("Duplicate courses are not allowed.");
+            }
         }
     }
 }

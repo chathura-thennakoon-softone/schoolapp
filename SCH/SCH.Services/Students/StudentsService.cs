@@ -10,6 +10,7 @@
     using SCH.Repositories.Students;
     using SCH.Repositories.UnitOfWork;
     using SCH.Shared.Exceptions;
+    using System;
 
     internal class StudentsService: IStudentsService
     {
@@ -89,6 +90,8 @@
 
         public async Task<int> InsertStudentAsync(StudentDto student)
         {
+            await ValidateCourses(student);
+
             Student studentEntity = new Student
             {
                 Id = 0,
@@ -123,6 +126,8 @@
             {
                 throw SCHDomainException.Notfound();
             }
+
+            await ValidateCourses(student);
 
             studentEntity.FirstName = student.FirstName;
             studentEntity.LastName = student.LastName;
@@ -215,8 +220,8 @@
 
             if (existingStudentCourseMap != null)
             {
-                throw SCHDomainException.Conflict(
-                    "This course is already assigned to the student.");
+                await this.DeleteCourseAsync(
+                    student.Id, course.Id);
             }
 
             StudentCourseMap newStudentCourseMap = new StudentCourseMap
@@ -238,5 +243,25 @@
 
             await unitOfWork.SaveChangesAsync();
         }
+
+        private async Task ValidateCourses(StudentDto student)
+        {
+            if (student.Courses.Count > 0)
+            {
+                List<int> courseIds = student.Courses
+                    .Select(c => c.CourseId)
+                    .ToList();
+
+                List<Course> courses = await coursesRepository
+                    .GetCoursesAsync(courseIds);
+
+                if (courses.Count != student.Courses.Count)
+                {
+                    throw SCHDomainException.Conflict(
+                        "Some of the courses are not found.");
+                }
+            }
+        }
+
     }
 }

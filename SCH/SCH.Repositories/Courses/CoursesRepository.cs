@@ -24,6 +24,18 @@
             return courses;
         }
 
+        public async Task<List<Course>> GetCoursesAsync(
+            List<int> coursesIds)
+        {
+
+            List<Course> courses = await context
+                .Course
+                .Where(c => coursesIds.Contains(c.Id))
+                .ToListAsync();
+
+            return courses;
+        }
+
         public async Task<Course?> GetCourseAsync(int id)
         {
             Course? course = await context

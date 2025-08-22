@@ -6,6 +6,8 @@
     {
         Task<List<Course>> GetCoursesAsync();
 
+        Task<List<Course>> GetCoursesAsync(List<int> coursesIds);
+
         Task<Course?> GetCourseAsync(int id);
 
         Task InsertCourseAsync(Course course);
