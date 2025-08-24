@@ -2,6 +2,8 @@ import { Routes } from "@angular/router";
 import { studentRoutes } from './student/student.routes';
 import { StudentApi } from "./student/services/student-api";
 import { ImageApi } from "./services/image-api";
+import { courseRoutes } from "./course/course.routes";
+import { CourseApi } from "./course/services/course-api";
 
 export const schRoutes: Routes = [
   {
@@ -22,5 +24,19 @@ export const schRoutes: Routes = [
       }
     ],
     children: studentRoutes
+  },
+  {
+    path: 'course',
+    providers: [
+      {
+        provide: CourseApi,
+        useClass: CourseApi
+      },
+      {
+        provide: ImageApi,
+        useClass: ImageApi
+      }
+    ],
+    children: courseRoutes
   }
 ];
