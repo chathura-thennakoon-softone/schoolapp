@@ -32,80 +32,80 @@ export class StudentListPage {
     Student,
     number | string | Date | boolean | null
   >[] = [
-      {
-        headerName: 'Photo',
-        field: 'imageUrl',
-        width: 80,
-        cellRenderer: (params: any) => {
-          if (params.value) {
-            return `<img src="${params.value}" alt="Student" style="width:40px;height:40px;border-radius:50%;" />`;
-          }
-          return '';
-        },
-        sortable: false,
-        filter: false,
-        suppressMovable: true,
+    {
+      headerName: 'Photo',
+      field: 'imageUrl',
+      width: 80,
+      cellRenderer: (params: any) => {
+        if (params.value) {
+          return `<img src="${params.value}" alt="Student" style="width:40px;height:40px;border-radius:50%;" />`;
+        }
+        return '';
       },
-      {
-        headerName: 'ID',
-        field: 'id',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'First Name',
-        field: 'firstName',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'Last Name',
-        field: 'lastName',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'Email',
-        field: 'email',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'Phone Number',
-        field: 'phoneNumber',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'SSN',
-        field: 'ssn',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'Start Date',
-        field: 'startDate',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'Active',
-        field: 'isActive',
-        sortable: true,
-        filter: true,
-      },
-      {
-        headerName: 'Actions',
-        cellRenderer: (params: any) => {
-          return `
+      sortable: false,
+      filter: false,
+      suppressMovable: true,
+    },
+    {
+      headerName: 'ID',
+      field: 'id',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'First Name',
+      field: 'firstName',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Last Name',
+      field: 'lastName',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Email',
+      field: 'email',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Phone Number',
+      field: 'phoneNumber',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'SSN',
+      field: 'ssn',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Start Date',
+      field: 'startDate',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Active',
+      field: 'isActive',
+      sortable: true,
+      filter: true,
+    },
+    {
+      headerName: 'Actions',
+      cellRenderer: (params: any) => {
+        return `
       <button type="button" class="edit-btn" data-action="edit">Edit</button>
       <button type="button" class="delete-btn" data-action="delete">Delete</button>
     `;
-        },
-        width: 200,
-        suppressMovable: true,
       },
-    ];
+      width: 200,
+      suppressMovable: true,
+    },
+  ];
 
   protected rowData: Student[] = [];
 
@@ -131,7 +131,7 @@ export class StudentListPage {
     this.setGridData();
   }
 
-  private setGridData() {
+  private setGridData(): void {
     this.gridDataLoading = true;
 
     this.studentApi
@@ -154,10 +154,10 @@ export class StudentListPage {
         } else {
           this.rowData = [];
         }
-        this.cdr.markForCheck();
       })
       .add(() => {
         this.gridDataLoading = false;
+        this.cdr.markForCheck();
       });
   }
 

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Student } from '../../interfaces/student';
 import { AppConfig } from '../../interfaces/app-config';
 import { APP_CONFIG } from '../../injection-tokens/app-config.token';
+import { StudentCourseMap } from '../../interfaces/student-course-map';
 
 @Injectable()
 export class StudentApi {
@@ -43,5 +44,28 @@ export class StudentApi {
 
   public deleteStudent(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/students/${id}`);
+  }
+
+  public getCourses(id: number): Observable<Array<StudentCourseMap>> {
+    return this.http.get<Array<StudentCourseMap>>(
+      `${this.apiUrl}/students/${id}/courses`
+    );
+  }
+
+  public insertCourse(
+    id: number,
+    courseId: number,
+    course: StudentCourseMap
+  ): Observable<void> {
+    return this.http.put<void>(
+      `${this.apiUrl}/students/${id}/courses/${courseId}`,
+      course
+    );
+  }
+
+  public deleteCourse(id: number, courseId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/students/${id}/courses/${courseId}`
+    );
   }
 }
