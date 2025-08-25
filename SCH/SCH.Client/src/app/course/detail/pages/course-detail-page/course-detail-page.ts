@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { CourseApi } from '../../../services/course-api';
+import { CourseApi } from '../../../../services/course-api';
 import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../services/notification';
 

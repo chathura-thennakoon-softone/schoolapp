@@ -1,15 +1,25 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentCourseMap } from '../../../../interfaces/student-course-map';
-import { AllCommunityModule, CellClickedEvent, ColDef, GridReadyEvent, ModuleRegistry } from 'ag-grid-community';
+import {
+  AllCommunityModule,
+  CellClickedEvent,
+  ColDef,
+  GridReadyEvent,
+  ModuleRegistry,
+} from 'ag-grid-community';
 import { StudentApi } from '../../../services/student-api';
 import { AgGridAngular } from 'ag-grid-angular';
+import { Course } from '../../../../interfaces/course';
+import { CourseApi } from '../../../../services/course-api';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 @Component({
   selector: 'sch-student-course-page',
-  imports: [AgGridAngular],
+  imports: [CommonModule, FormsModule, AgGridAngular],
   templateUrl: './student-course-page.html',
   styleUrl: './student-course-page.scss',
 })
@@ -69,21 +79,38 @@ export class StudentCoursePage {
   ];
 
   protected rowData: StudentCourseMap[] = [];
+  protected courses: Course[] = [];
+
+  protected selectedCourseId: number | null = null;
 
   protected gridDataLoading = false;
-  public isDeleting = false;
-  public isAdding = false;
-  public isEditing = false;
+  protected coursesLoading = false;
+  protected isDeleting = false;
+  protected isAdding = false;
+  protected isEditing = false;
 
   constructor(
     private readonly _avRoute: ActivatedRoute,
+    private readonly cdr: ChangeDetectorRef,
     private readonly studentApi: StudentApi,
-    private readonly cdr: ChangeDetectorRef
+    private readonly courseApi: CourseApi
   ) {}
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.studentId = +params['id'] || 0;
+    });
+
+    this.setCourses();
+  }
+
+  private setCourses(): void {
+    this.coursesLoading = true;
+
+    this.courseApi.getCourses().subscribe((courses) => {
+      this.courses = courses;
+      this.coursesLoading = false;
+      this.cdr.markForCheck();
     });
   }
 
@@ -120,4 +147,6 @@ export class StudentCoursePage {
   }
 
   protected onDeletes(students: StudentCourseMap[]): void {}
+
+  protected onAddCourse(): void {}
 }

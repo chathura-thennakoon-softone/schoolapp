@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { StudentApi } from './student/services/student-api';
 import { ImageApi } from './services/image-api';
 import { studentRoutes } from './student/student.routes';
-import { CourseApi } from './course/services/course-api';
+import { CourseApi } from './services/course-api';
 import { courseRoutes } from './course/course.routes';
 
 export const routes: Routes = [
@@ -21,6 +21,10 @@ export const routes: Routes = [
       {
         provide: ImageApi,
         useClass: ImageApi
+      },
+      {
+        provide: CourseApi,
+        useClass: CourseApi
       }
     ],
     children: studentRoutes
