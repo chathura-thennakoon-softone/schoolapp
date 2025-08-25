@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Student } from '../../interfaces/student';
-import { AppConfig } from '../../../interfaces/app-config';
-import { APP_CONFIG } from '../../../injection-tokens/app-config.token';
+import { AppConfig } from '../../interfaces/app-config';
+import { APP_CONFIG } from '../../injection-tokens/app-config.token';
 
 @Injectable()
 export class StudentApi {

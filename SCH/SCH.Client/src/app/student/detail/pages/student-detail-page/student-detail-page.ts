@@ -9,11 +9,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { StudentApi } from '../../../services/student-api';
-import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
-import { AppConfig } from '../../../../../interfaces/app-config';
+import { APP_CONFIG } from '../../../../injection-tokens/app-config.token';
+import { AppConfig } from '../../../../interfaces/app-config';
 import { ImageApi } from '../../../../services/image-api';
 import { CommonModule, formatDate } from '@angular/common';
-import { Notification } from '../../../../../services/notification';
+import { Notification } from '../../../../services/notification';
 
 @Component({
   selector: 'sch-student-detail-page',

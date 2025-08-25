@@ -1,13 +1,43 @@
 import { Routes } from '@angular/router';
-import { schRoutes } from './sch/sch.routes';
+import { StudentApi } from './student/services/student-api';
+import { ImageApi } from './services/image-api';
+import { studentRoutes } from './student/student.routes';
+import { CourseApi } from './course/services/course-api';
+import { courseRoutes } from './course/course.routes';
 
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./sch/pages/schpage/schpage').then(
-        (m) => m.SCHPage
-      ),
-    children: schRoutes
+    redirectTo: 'student',
+    pathMatch: 'full',
   },
+  {
+    path: 'student',
+    providers: [
+      {
+        provide: StudentApi,
+        useClass: StudentApi
+      },
+      {
+        provide: ImageApi,
+        useClass: ImageApi
+      }
+    ],
+    children: studentRoutes
+    
+  },
+  {
+    path: 'course',
+    providers: [
+      {
+        provide: CourseApi,
+        useClass: CourseApi
+      },
+      {
+        provide: ImageApi,
+        useClass: ImageApi
+      }
+    ],
+    children: courseRoutes
+  }
 ];

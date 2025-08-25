@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { CourseApi } from '../../../services/course-api';
 import { CommonModule } from '@angular/common';
-import { Notification } from '../../../../../services/notification';
+import { Notification } from '../../../../services/notification';
 
 
 @Component({

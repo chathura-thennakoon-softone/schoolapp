@@ -10,8 +10,8 @@ import {
 import { Course } from '../../../../interfaces/course';
 import { ActivatedRoute, Router } from '@angular/router';
 import { concat, Observable } from 'rxjs';
-import { Notification } from '../../../../../services/notification';
-import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
+import { Notification } from '../../../../services/notification';
+import { ConfirmDialog } from '../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { CourseApi } from '../../../services/course-api';
 
