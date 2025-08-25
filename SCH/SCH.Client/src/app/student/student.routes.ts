@@ -16,6 +16,13 @@ export const studentRoutes: Routes = [
   },
   {
     path: 'detail/:id',
-    children: studentDetailRoutes
+    children: studentDetailRoutes,
+  },
+  {
+    path: ':id/courses',
+    loadComponent: () =>
+      import('./courses/pages/student-course-page/student-course-page').then(
+        (m) => m.StudentCoursePage
+      ),
   },
 ];
