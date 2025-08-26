@@ -7,13 +7,13 @@ import {
   GridReadyEvent,
   CellClickedEvent,
 } from 'ag-grid-community';
-import { Course } from '../../../../interfaces/course';
+import { Course } from '../../../../../sch/interfaces/course';
 import { ActivatedRoute, Router } from '@angular/router';
 import { concat, Observable } from 'rxjs';
-import { Notification } from '../../../../services/notification';
-import { ConfirmDialog } from '../../../../selectors/confirm-dialog/confirm-dialog';
+import { Notification } from '../../../../../services/notification';
+import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
-import { CourseApi } from '../../../../services/course-api';
+import { CourseApi } from '../../../../../sch/services/course-api';
 
 
 ModuleRegistry.registerModules([AllCommunityModule]);

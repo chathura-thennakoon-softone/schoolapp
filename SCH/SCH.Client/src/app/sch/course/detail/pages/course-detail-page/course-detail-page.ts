@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Course } from '../../../../interfaces/course';
+import { Course } from '../../../../../sch/interfaces/course';
 import {
   FormBuilder,
   FormControl,
@@ -8,9 +8,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { CourseApi } from '../../../../services/course-api';
+import { CourseApi } from '../../../../../sch/services/course-api';
 import { CommonModule } from '@angular/common';
-import { Notification } from '../../../../services/notification';
+import { Notification } from '../../../../../services/notification';
 
 
 @Component({

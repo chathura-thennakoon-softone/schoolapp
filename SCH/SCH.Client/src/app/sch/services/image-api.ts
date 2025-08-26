@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AppConfig } from '../interfaces/app-config';
-import { APP_CONFIG } from '../injection-tokens/app-config.token';
+import { AppConfig } from '../../interfaces/app-config';
+import { APP_CONFIG } from '../../injection-tokens/app-config.token';
 
 @Injectable()
 export class ImageApi {

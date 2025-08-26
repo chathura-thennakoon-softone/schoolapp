@@ -7,16 +7,16 @@ import {
   GridReadyEvent,
   CellClickedEvent,
 } from 'ag-grid-community';
-import { Student } from '../../../../interfaces/student';
+import { Student } from '../../../../../sch/interfaces/student';
 import { StudentApi } from '../../../services/student-api';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AppConfig } from '../../../../interfaces/app-config';
-import { APP_CONFIG } from '../../../../injection-tokens/app-config.token';
-import { ImageApi } from '../../../../services/image-api';
+import { AppConfig } from '../../../../../interfaces/app-config';
+import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
+import { ImageApi } from '../../../../../sch/services/image-api';
 import { catchError } from 'rxjs/operators';
 import { concatMap, from, mergeMap, of } from 'rxjs';
-import { Notification } from '../../../../services/notification';
-import { ConfirmDialog } from '../../../../selectors/confirm-dialog/confirm-dialog';
+import { Notification } from '../../../../../services/notification';
+import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
 
 ModuleRegistry.registerModules([AllCommunityModule]);

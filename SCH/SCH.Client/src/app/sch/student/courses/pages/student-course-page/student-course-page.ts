@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { StudentCourseMap } from '../../../../interfaces/student-course-map';
+import { StudentCourseMap } from '../../../../../sch/interfaces/student-course-map';
 import {
   AllCommunityModule,
   CellClickedEvent,
@@ -10,8 +10,8 @@ import {
 } from 'ag-grid-community';
 import { StudentApi } from '../../../services/student-api';
 import { AgGridAngular } from 'ag-grid-angular';
-import { Course } from '../../../../interfaces/course';
-import { CourseApi } from '../../../../services/course-api';
+import { Course } from '../../../../../sch/interfaces/course';
+import { CourseApi } from '../../../../../sch/services/course-api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
