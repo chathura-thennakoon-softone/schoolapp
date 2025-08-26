@@ -1,11 +1,10 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentCourseMap } from '../../../../../sch/interfaces/student-course-map';
 import {
   AllCommunityModule,
   CellClickedEvent,
   ColDef,
-  GridReadyEvent,
   ModuleRegistry,
 } from 'ag-grid-community';
 import { StudentApi } from '../../../services/student-api';
@@ -14,6 +13,10 @@ import { Course } from '../../../../../sch/interfaces/course';
 import { CourseApi } from '../../../../../sch/services/course-api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { concat, forkJoin } from 'rxjs';
+import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { Notification } from '../../../../../services/notification';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -79,12 +82,13 @@ export class StudentCoursePage {
   ];
 
   protected rowData: StudentCourseMap[] = [];
-  protected courses: Course[] = [];
+  private courses: Course[] = [];
+  protected notSelectedCourses: Course[] = [];
 
-  protected selectedCourseId: number | null = null;
+  protected selectedCourseId: string | null = null;
 
+  protected dataLoading = false;
   protected gridDataLoading = false;
-  protected coursesLoading = false;
   protected isDeleting = false;
   protected isAdding = false;
   protected isEditing = false;
@@ -93,7 +97,9 @@ export class StudentCoursePage {
     private readonly _avRoute: ActivatedRoute,
     private readonly cdr: ChangeDetectorRef,
     private readonly studentApi: StudentApi,
-    private readonly courseApi: CourseApi
+    private readonly courseApi: CourseApi,
+    @Inject(MatDialog) private readonly dialog: MatDialog,
+    private readonly notification: Notification
   ) {}
 
   ngOnInit(): void {
@@ -101,40 +107,35 @@ export class StudentCoursePage {
       this.studentId = +params['id'] || 0;
     });
 
-    this.setCourses();
+    this.setData();
   }
 
-  private setCourses(): void {
-    this.coursesLoading = true;
+  private setData(): void {
+    this.dataLoading = true;
+    this.cdr.markForCheck();
+    const courses$ = this.courseApi.getCourses();
+    const studentCourses$ = this.studentApi.getCourses(this.studentId);
 
-    this.courseApi.getCourses().subscribe((courses) => {
-      this.courses = courses;
-      this.coursesLoading = false;
+    forkJoin([courses$, studentCourses$]).subscribe(
+      ([courses, studentCourses]) => {
+        this.courses = courses;
+        this.rowData = studentCourses;
+        this.setNotSelectedCourses();
+        this.dataLoading = false;
+        this.cdr.markForCheck();
+      }
+    );
+  }
+
+  private resetGridData(): void {
+    this.gridDataLoading = true;
+    this.cdr.markForCheck();
+    this.studentApi.getCourses(this.studentId).subscribe((courses) => {
+      this.rowData = courses;
+      this.setNotSelectedCourses();
+      this.gridDataLoading = false;
       this.cdr.markForCheck();
     });
-  }
-
-  protected onGridReady(params: GridReadyEvent) {
-    this.setGridData();
-  }
-
-  private setGridData(): void {
-    this.gridDataLoading = true;
-
-    this.studentApi
-      .getCourses(this.studentId)
-      .subscribe((data) => {
-        if (data?.length) {
-          this.rowData = data;
-        } else {
-          this.rowData = [];
-        }
-      })
-      .add(() => {
-        this.gridDataLoading = false;
-
-        this.cdr.markForCheck();
-      });
   }
 
   protected onCellClicked(event: CellClickedEvent): void {
@@ -146,7 +147,77 @@ export class StudentCoursePage {
     }
   }
 
-  protected onDeletes(students: StudentCourseMap[]): void {}
+  protected onAddCourse(): void {
+    const courseId = Number(this.selectedCourseId);
+    if (courseId) {
+      const course: StudentCourseMap = {
+        studentId: this.studentId,
+        courseId: courseId,
+        enrollmentDate: new Date(),
+        studentFirstName: null,
+        studentLastName: null,
+        courseName: null,
+      };
 
-  protected onAddCourse(): void {}
+      this.isAdding = true;
+      this.cdr.markForCheck();
+      this.studentApi
+        .insertCourse(this.studentId, courseId, course)
+        .subscribe(() => {
+          this.resetGridData();
+          this.selectedCourseId = null;
+          this.notification.success('Course added successfully');
+        })
+        .add(() => {
+          this.isAdding = false;
+          this.cdr.markForCheck();
+        });
+    }
+  }
+
+  private setNotSelectedCourses(): void {
+    this.notSelectedCourses = this.courses.filter(
+      (course) =>
+        !this.rowData.some(
+          (studentCourse) => studentCourse.courseId === course.id
+        )
+    );
+  }
+
+  protected onRemoveAll(): void {
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      data: {
+        message: 'Are you sure you want to remove all courses?',
+        cancelText: 'Cancel',
+        confirmText: 'Delete',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.onDeletes(this.rowData);
+      }
+    });
+  }
+
+  protected onDeletes(courses: StudentCourseMap[]): void {
+    const deleteRequests = courses.map((course) =>
+      this.studentApi.deleteCourse(this.studentId, course.courseId)
+    );
+    this.isDeleting = true;
+    this.cdr.markForCheck();
+    concat(...deleteRequests)
+      .subscribe({
+        complete: () => {
+          this.resetGridData();
+          this.notification.success('Course deleted successfully');
+        },
+        error: (err) => {
+          this.notification.error('Failed to delete course');
+        },
+      })
+      .add(() => {
+        this.isDeleting = false;
+        this.cdr.markForCheck();
+      });
+  }
 }

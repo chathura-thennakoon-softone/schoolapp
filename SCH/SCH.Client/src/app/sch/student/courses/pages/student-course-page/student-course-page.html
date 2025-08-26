@@ -1,8 +1,11 @@
-<div class="content">
+<div
+    class="content"
+    *ngIf="!dataLoading"
+>
     <h2>Courses</h2>
     <div
         class="row"
-        *ngIf="!coursesLoading"
+        *ngIf="notSelectedCourses.length > 0"
     >
 
         <div class="col">
@@ -13,7 +16,7 @@
                 [(ngModel)]="selectedCourseId"
             >
                 <option
-                    *ngFor="let course of courses"
+                    *ngFor="let course of notSelectedCourses"
                     [value]="course.id"
                 >{{ course.name }}</option>
             </select>
@@ -27,13 +30,18 @@
         </div>
 
     </div>
+
+    <button
+        (click)="onRemoveAll()"
+        [disabled]="gridDataLoading || isDeleting || rowData.length === 0 || isAdding"
+    >Remove All</button>
+
     <div class="row">
         <ag-grid-angular
             style="width: 100%; height: 550px;"
             [rowData]="rowData"
             [columnDefs]="columnDefs"
             (cellClicked)="onCellClicked($event)"
-            (gridReady)="onGridReady($event)"
         />
     </div>
 
