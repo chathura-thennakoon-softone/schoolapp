@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { StudentListPage } from './student-list-page';
@@ -12,32 +12,34 @@ describe('StudentListPage', () => {
   let component: StudentListPage;
   let fixture: ComponentFixture<StudentListPage>;
 
+  let studentApiMock: jasmine.SpyObj<StudentApi>;
+  let imageApiMock: jasmine.SpyObj<ImageApi>;
+  let routerMock: jasmine.SpyObj<Router>;
+  let toastrMock: jasmine.SpyObj<ToastrService>;
+
   beforeEach(async () => {
+    studentApiMock = jasmine.createSpyObj('StudentApi', [
+      'getStudents',
+      'deleteStudent',
+    ]);
+    imageApiMock = jasmine.createSpyObj('ImageApi', ['deleteStudentProfile']);
+    routerMock = jasmine.createSpyObj('Router', ['navigate']);
+    toastrMock = jasmine.createSpyObj('ToastrService', [
+      'success',
+      'error',
+      'warning',
+      'info',
+    ]);
+
     await TestBed.configureTestingModule({
       imports: [StudentListPage],
       providers: [
         { provide: ActivatedRoute, useValue: { params: of({}), snapshot: {} } },
-        {
-          provide: StudentApi,
-          useValue: {
-            getStudents: () => of([]),
-            deleteStudent: () => of(void 0),
-          },
-        },
+        { provide: StudentApi, useValue: studentApiMock },
         { provide: APP_CONFIG, useValue: { apiUrl: 'http://test' } },
-        {
-          provide: ToastrService,
-          useValue: {
-            success: () => {},
-            error: () => {},
-            warning: () => {},
-            info: () => {},
-          },
-        },
-        {
-          provide: ImageApi,
-          useValue: { deleteStudentProfile: () => of(void 0) },
-        },
+        { provide: ToastrService, useValue: toastrMock },
+        { provide: ImageApi, useValue: imageApiMock },
+        { provide: Router, useValue: routerMock },
       ],
     }).compileComponents();
 
@@ -48,5 +50,21 @@ describe('StudentListPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('loads grid data on grid ready', () => {
+    const students = [{ id: 1, firstName: 'A' } as any];
+    studentApiMock.getStudents.and.returnValue(of(students));
+
+    (component as any).onGridReady({} as any);
+
+    expect(studentApiMock.getStudents).toHaveBeenCalledWith(true);
+    expect((component as any).rowData.length).toBe(1);
+    expect((component as any).gridDataLoading).toBeFalse();
+  });
+
+  it('onAdd navigates to create student', () => {
+    (component as any).onAdd();
+    expect(routerMock.navigate).toHaveBeenCalled();
   });
 });
