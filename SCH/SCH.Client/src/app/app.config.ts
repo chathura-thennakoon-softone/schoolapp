@@ -1,7 +1,6 @@
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
-  provideZonelessChangeDetection,
   importProvidersFrom,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -13,7 +12,6 @@ import { ToastrModule } from 'ngx-toastr';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideZonelessChangeDetection(),
     provideRouter(routes),
     provideHttpClient(),
     provideAnimations(),
