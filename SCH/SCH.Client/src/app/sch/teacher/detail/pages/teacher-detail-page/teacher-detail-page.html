@@ -1,0 +1,39 @@
+<div class="container">
+    <h2 *ngIf="!teacherId">Add Teacher</h2>
+    <h2 *ngIf="teacherId">Edit Teacher</h2>
+
+    <form
+        *ngIf="!isTeacherLoading"
+        [formGroup]="teacherForm"
+        (ngSubmit)="onSubmit()"
+    >
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input
+                id="name"
+                formControlName="name"
+                class="form-control"
+            />
+            <div
+                *ngIf="formControls['name'].touched && formControls['name'].invalid"
+                class="text-danger"
+            >
+                <small *ngIf="formControls['name'].errors?.['required']">
+                    Name is required.</small>
+                <small *ngIf="formControls['name'].errors?.['minlength']">
+                    Name should be at least 2 characters.</small>
+            </div>
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isTeacherSaving"
+        >Save</button>
+        <button
+            (click)="onBack()"
+            [disabled]="isTeacherSaving"
+        >Back</button>
+    </form>
+</div>

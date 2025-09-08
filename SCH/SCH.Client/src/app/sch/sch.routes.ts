@@ -4,6 +4,8 @@ import { StudentApi } from "./student/services/student-api";
 import { ImageApi } from "./services/image-api";
 import { courseRoutes } from "./course/course.routes";
 import { CourseApi } from "./services/course-api";
+import { teacherRoutes } from "./teacher/teacher.routes";
+import { TeacherApi } from "./services/teacher-api";
 
 export const schRoutes: Routes = [
   {
@@ -42,5 +44,19 @@ export const schRoutes: Routes = [
       }
     ],
     children: courseRoutes
+  },
+  {
+    path: 'teacher',
+    providers: [
+      {
+        provide: TeacherApi,
+        useClass: TeacherApi
+      },
+      {
+        provide: ImageApi,
+        useClass: ImageApi
+      }
+    ],
+    children: teacherRoutes
   }
 ];

@@ -2,6 +2,7 @@
 {
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Courses.Entities;
+    using SCH.Models.Teachers.Entities;
     using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Students.Entities;
 
@@ -15,6 +16,8 @@
         internal DbSet<Student> Student { get; set; }
 
         internal DbSet<Course> Course { get; set; }
+
+        internal DbSet<Teacher> Teacher { get; set; }
 
         internal DbSet<StudentCourseMap> StudentCourseMap { get; set; }
 
@@ -34,6 +37,11 @@
             });
 
             modelBuilder.Entity<Course>(entity =>
+            {
+                entity.Property(e => e.Name).HasColumnType("nvarchar(400)");
+            });
+
+            modelBuilder.Entity<Teacher>(entity =>
             {
                 entity.Property(e => e.Name).HasColumnType("nvarchar(400)");
             });
