@@ -35,7 +35,7 @@ namespace SCH.API.Controllers
             IActionResult actionResult;
             if (id < 1)
             {
-                throw SCHDomainException.BadRequest("Id should grater than 0");
+                throw SCHDomainException.BadRequest("Id should be greater than 0");
             }
 
             TeacherDto? teacher = await teachersService
@@ -69,7 +69,7 @@ namespace SCH.API.Controllers
         {
             if (id < 1)
             {
-                throw SCHDomainException.BadRequest("Id should grater than 0");
+                throw SCHDomainException.BadRequest("Id should be greater than 0");
             }
 
             teacher.Id = id;
@@ -85,7 +85,7 @@ namespace SCH.API.Controllers
         {
             if (id < 1)
             {
-                throw SCHDomainException.BadRequest("Id should grater than 0");
+                throw SCHDomainException.BadRequest("Id should be greater than 0");
             }
 
             await teachersService

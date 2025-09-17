@@ -37,7 +37,7 @@ export class CourseListPage {
         filter: true,
       },
       {
-        headerName: 'First Name',
+        headerName: 'Course Name',
         field: 'name',
         sortable: true,
         filter: true,
@@ -68,17 +68,7 @@ export class CourseListPage {
     private readonly courseApi: CourseApi,
     private readonly notification: Notification,
     @Inject(MatDialog) private readonly dialog: MatDialog
-  ) {
-
-    const a = 5;
-    const b = 10;
-    const c =  (b - 2*a)/(b-10);
-    console.log(c);
-    
-    const f = JSON.parse('{"a": 5 "b: 10}');
-
-    console.log(f);
-   }
+  ) { }
 
 
   protected onGridReady(params: GridReadyEvent) {
