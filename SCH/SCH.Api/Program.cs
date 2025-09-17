@@ -13,7 +13,8 @@ builder.Services.AddAllowedOrigins(
 // Add services to the container.
 
 builder.Services.AddControllers();
- builder.Services.AddServices();builder.Services.AddRepositories();
+builder.Services.AddServices();
+builder.Services.AddRepositories();
 builder.Services.AddUtilities();
 builder.Services.AddDbContexts(builder.Configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddUnitOfWorks();

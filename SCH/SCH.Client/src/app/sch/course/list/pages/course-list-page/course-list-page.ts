@@ -37,7 +37,7 @@ export class CourseListPage {
         filter: true,
       },
       {
-        headerName: 'First Name',
+        headerName: 'Course Name',
         field: 'name',
         sortable: true,
         filter: true,
