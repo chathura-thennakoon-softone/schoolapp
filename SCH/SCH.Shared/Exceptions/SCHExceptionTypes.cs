@@ -4,6 +4,7 @@
     {
         Conflict,
         Forbidden,
+        Unauthorized,
         BadRequest,
         NotFound,
         ServiceUnavailable,

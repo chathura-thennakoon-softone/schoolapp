@@ -32,5 +32,19 @@
             return new SCHDomainException(message) 
             { SCHExceptionType = SCHExceptionTypes.Conflict };
         }
+
+        public static SCHDomainException Forbidden(
+            string message = "Forbidden")
+        {
+            return new SCHDomainException(message)
+            { SCHExceptionType = SCHExceptionTypes.Forbidden };
+        }
+
+        public static SCHDomainException Unauthorized(
+            string message = "Unauthorized")
+        {
+            return new SCHDomainException(message)
+            { SCHExceptionType = SCHExceptionTypes.Unauthorized };
+        }
     }
 }

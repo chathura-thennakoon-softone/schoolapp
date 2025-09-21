@@ -49,7 +49,11 @@
                     {
                         statusCode = HttpStatusCode.Forbidden;
                     }
-                    else 
+                    else if (expType == SCHExceptionTypes.Unauthorized)
+                    {
+                        statusCode = HttpStatusCode.Unauthorized;
+                    }
+                    else
                     {
                         statusCode = HttpStatusCode.Conflict;
                     }
