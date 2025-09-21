@@ -8,7 +8,7 @@ describe('DashboardPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DashboardPage ]
+      imports: [ DashboardPage ]
     })
     .compileComponents();
 
