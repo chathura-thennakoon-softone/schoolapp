@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { schRoutes } from './sch/sch.routes';
+import { SidenavService } from './sch/services/sidenav.service';
 
 export const routes: Routes = [
   {
@@ -13,6 +14,12 @@ export const routes: Routes = [
       import('./sch/pages/schpage/schpage').then(
         (m) => m.SCHPage
       ),
+    providers: [
+      {
+        provide: SidenavService,
+        useClass: SidenavService
+      },
+    ],
     children: schRoutes
   },
   {

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideRouter } from '@angular/router';
 import { SCHPage } from './schpage';
+import { SidenavService } from '../../services/sidenav.service';
 
 describe('SCHPage', () => {
   let component: SCHPage;
@@ -8,7 +9,11 @@ describe('SCHPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SCHPage]
+      imports: [SCHPage],
+      providers: [
+        provideRouter([]),
+        SidenavService
+      ]
     })
     .compileComponents();
 
