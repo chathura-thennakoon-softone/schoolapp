@@ -6,12 +6,17 @@ import { courseRoutes } from "./course/course.routes";
 import { CourseApi } from "./services/course-api";
 import { teacherRoutes } from "./teacher/teacher.routes";
 import { TeacherApi } from "./services/teacher-api";
+import { dashboardRoutes } from "./dashboard/dashboard.routes";
 
 export const schRoutes: Routes = [
   {
     path: '',
-    redirectTo: 'student',
+    redirectTo: 'dashboard',
     pathMatch: 'full',
+  },
+  {
+    path: 'dashboard',
+    children: dashboardRoutes
   },
   {
     path: 'student',
