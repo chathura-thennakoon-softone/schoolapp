@@ -15,4 +15,30 @@ export const routes: Routes = [
       ),
     children: schRoutes
   },
+  {
+    path: 'notfound',
+    loadComponent: () =>
+      import('./pages/not-found-page/not-found-page').then(
+        (m) => m.NotFoundPage
+      )
+  },
+  {
+    path: 'unauthorized',
+    loadComponent: () =>
+      import('./pages/unauthorized-page/unauthorized-page').then(
+        (m) => m.UnauthorizedPage
+      )
+  },
+  {
+    path: 'servererror',
+    loadComponent: () =>
+      import('./pages/server-error-page/server-error-page').then(
+        (m) => m.ServerErrorPage
+      )
+  },
+  {
+    path: '**',
+    redirectTo: 'notfound',
+    pathMatch: 'full'
+  }
 ];
