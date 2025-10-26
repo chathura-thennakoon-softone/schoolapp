@@ -17,7 +17,8 @@ namespace SCH.Repositories.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasDefaultSchema("dbo")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -36,7 +37,7 @@ namespace SCH.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Course");
+                    b.ToTable("Course", "dbo");
                 });
 
             modelBuilder.Entity("SCH.Models.StudentCourseMap.Entities.StudentCourseMap", b =>
@@ -54,7 +55,7 @@ namespace SCH.Repositories.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("StudentCourseMap");
+                    b.ToTable("StudentCourseMap", "dbo");
                 });
 
             modelBuilder.Entity("SCH.Models.Students.Entities.Student", b =>
@@ -92,7 +93,7 @@ namespace SCH.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Student");
+                    b.ToTable("Student", "dbo");
                 });
 
             modelBuilder.Entity("SCH.Models.Teachers.Entities.Teacher", b =>
@@ -109,7 +110,36 @@ namespace SCH.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Teacher");
+                    b.ToTable("Teacher", "dbo");
+                });
+
+            modelBuilder.Entity("SCH.Models.Users.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AspNetUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AspNetUserId")
+                        .IsUnique();
+
+                    b.ToTable("User", "dbo");
                 });
 
             modelBuilder.Entity("SCH.Models.StudentCourseMap.Entities.StudentCourseMap", b =>

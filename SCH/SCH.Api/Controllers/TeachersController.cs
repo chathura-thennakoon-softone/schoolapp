@@ -2,6 +2,7 @@
 
 namespace SCH.API.Controllers
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using SCH.Models.Teachers.ClientDtos;
     using SCH.Services.Teachers;
@@ -9,6 +10,7 @@ namespace SCH.API.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // Require authentication for all endpoints
     public class TeachersController : ControllerBase
     {
         private readonly ITeachersService teachersService;

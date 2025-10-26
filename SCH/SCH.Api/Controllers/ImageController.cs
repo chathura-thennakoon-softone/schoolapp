@@ -1,5 +1,6 @@
 ﻿namespace SCH.API.Controllers
 {
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using SCH.Services.Images;
     using SCH.Services.Students;
@@ -10,6 +11,7 @@
 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // Require authentication for all endpoints
     public class ImageController : Controller
     {
         private readonly IImageService imageService;

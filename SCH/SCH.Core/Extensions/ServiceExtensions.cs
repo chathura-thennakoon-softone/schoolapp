@@ -1,11 +1,18 @@
-﻿namespace SCH.Core.DependancyConfiguration
+namespace SCH.Core.Extensions
 {
     using Microsoft.Extensions.DependencyInjection;
     using SCH.Services;
     using System.Reflection;
 
-    public static class ServiceConfiguration
+    /// <summary>
+    /// Extension methods for configuring application services
+    /// </summary>
+    public static class ServiceExtensions
     {
+        /// <summary>
+        /// Automatically registers all service implementations from SCH.Services assembly
+        /// </summary>
+        /// <param name="services">Service collection</param>
         public static void AddServices(this IServiceCollection services)
         {
             Assembly assembly = Assembly.Load("SCH.Services");
@@ -27,7 +34,7 @@
 
                 services.AddScoped(parentInteface, type);
             }
-
         }
     }
 }
+

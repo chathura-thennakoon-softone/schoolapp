@@ -13,7 +13,7 @@
             { SCHExceptionType = schExceptionType };
         }
 
-        public static SCHDomainException Notfound(
+        public static SCHDomainException NotFound(
             string message = "Record Not Found")
         {
             return new SCHDomainException(message) 

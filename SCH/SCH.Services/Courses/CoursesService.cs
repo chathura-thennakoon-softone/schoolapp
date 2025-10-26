@@ -76,7 +76,7 @@
 
             if (courseEntity == null)
             {
-                throw SCHDomainException.Notfound();
+                throw SCHDomainException.NotFound();
             }
 
             courseEntity.Name = course.Name;

@@ -12,20 +12,21 @@ using SCH.Repositories.DbContexts;
 namespace SCH.Repositories.Migrations
 {
     [DbContext(typeof(SCHContext))]
-    [Migration("20250815143124_AddSCH")]
-    partial class AddSCH
+    [Migration("20251026161150_InitialDomain")]
+    partial class InitialDomain
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasDefaultSchema("dbo")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("SCH.Models.Students.Entities.Course", b =>
+            modelBuilder.Entity("SCH.Models.Courses.Entities.Course", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -39,7 +40,25 @@ namespace SCH.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Course");
+                    b.ToTable("Course", "dbo");
+                });
+
+            modelBuilder.Entity("SCH.Models.StudentCourseMap.Entities.StudentCourseMap", b =>
+                {
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EnrollmentDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("StudentId", "CourseId");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("StudentCourseMap", "dbo");
                 });
 
             modelBuilder.Entity("SCH.Models.Students.Entities.Student", b =>
@@ -77,37 +96,65 @@ namespace SCH.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Student");
+                    b.ToTable("Student", "dbo");
                 });
 
-            modelBuilder.Entity("SCH.Models.Students.Entities.StudentCourseMap", b =>
+            modelBuilder.Entity("SCH.Models.Teachers.Entities.Teacher", b =>
                 {
-                    b.Property<int>("StudentId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("CourseId")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("EnrollmentDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(400)");
 
-                    b.HasKey("StudentId", "CourseId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("StudentCourseMap");
+                    b.ToTable("Teacher", "dbo");
                 });
 
-            modelBuilder.Entity("SCH.Models.Students.Entities.StudentCourseMap", b =>
+            modelBuilder.Entity("SCH.Models.Users.Entities.User", b =>
                 {
-                    b.HasOne("SCH.Models.Students.Entities.Course", "Course")
-                        .WithMany("StudentCourses")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AspNetUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AspNetUserId")
+                        .IsUnique();
+
+                    b.ToTable("User", "dbo");
+                });
+
+            modelBuilder.Entity("SCH.Models.StudentCourseMap.Entities.StudentCourseMap", b =>
+                {
+                    b.HasOne("SCH.Models.Courses.Entities.Course", "Course")
+                        .WithMany("StudentCourseMaps")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SCH.Models.Students.Entities.Student", "Student")
-                        .WithMany("StudentCourses")
+                        .WithMany("StudentCourseMaps")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -117,14 +164,14 @@ namespace SCH.Repositories.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("SCH.Models.Students.Entities.Course", b =>
+            modelBuilder.Entity("SCH.Models.Courses.Entities.Course", b =>
                 {
-                    b.Navigation("StudentCourses");
+                    b.Navigation("StudentCourseMaps");
                 });
 
             modelBuilder.Entity("SCH.Models.Students.Entities.Student", b =>
                 {
-                    b.Navigation("StudentCourses");
+                    b.Navigation("StudentCourseMaps");
                 });
 #pragma warning restore 612, 618
         }

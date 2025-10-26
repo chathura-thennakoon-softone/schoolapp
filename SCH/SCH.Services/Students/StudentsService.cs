@@ -124,7 +124,7 @@
 
             if (studentEntity == null)
             {
-                throw SCHDomainException.Notfound();
+                throw SCHDomainException.NotFound();
             }
 
             await ValidateCourses(student);
@@ -202,7 +202,7 @@
 
             if (student == null)
             {
-                throw SCHDomainException.Notfound("Student not found.");
+                throw SCHDomainException.NotFound("Student not found.");
             }
 
             Course? course = await coursesRepository
@@ -210,7 +210,7 @@
 
             if (course == null)
             {
-                throw SCHDomainException.Notfound("Course not found.");
+                throw SCHDomainException.NotFound("Course not found.");
             }
 
             StudentCourseMap? existingStudentCourseMap = await studentCourseMapRepository

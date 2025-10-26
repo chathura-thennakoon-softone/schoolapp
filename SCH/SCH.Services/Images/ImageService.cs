@@ -47,7 +47,7 @@
 
             if (!File.Exists(imagePath))
             {
-                throw SCHDomainException.Notfound("Image not found");
+                throw SCHDomainException.NotFound("Image not found");
             }
 
             FileStream fileStream = new FileStream(

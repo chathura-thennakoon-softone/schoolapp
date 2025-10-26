@@ -4,6 +4,9 @@
     using Microsoft.EntityFrameworkCore.Design;
     using Microsoft.Extensions.Configuration;
 
+    /// <summary>
+    /// Design-time factory for SCHContext migrations
+    /// </summary>
     public class SCHContextFactory : IDesignTimeDbContextFactory<SCHContext>
     {
         public SCHContext CreateDbContext(string[] args)
@@ -15,13 +18,17 @@
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-
-            // Get connection string (replace "DefaultConnection" with your key)
+            // Get connection string
             string? connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            DbContextOptionsBuilder<SCHContext> optionsBuilder 
-                = new DbContextOptionsBuilder<SCHContext>();
-            optionsBuilder.UseSqlServer(connectionString);
+            var optionsBuilder = new DbContextOptionsBuilder<SCHContext>();
+            
+            // Configure with dbo schema migration history
+            optionsBuilder.UseSqlServer(
+                connectionString,
+                sqlOptions => sqlOptions.MigrationsHistoryTable(
+                    "__EFMigrationsHistory",
+                    "dbo"));
 
             return new SCHContext(optionsBuilder.Options);
         }

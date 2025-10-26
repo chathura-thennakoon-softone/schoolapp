@@ -59,10 +59,12 @@
     <Folder Include="dbo\" />
     <Folder Include="dbo\Tables\" />
     <Folder Include="PostScript" />
-    <Folder Include="PostScript\MockData" />
+    <Folder Include="identity\" />
+    <Folder Include="identity\Tables\" />
+    <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="PostScript\MockData\Script.PostDeployment.StudentPopulate.sql" />
+    <PostDeploy Include="PostScript\Script.PostDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\StudentCourseMap.sql" />
@@ -70,5 +72,16 @@
     <Build Include="dbo\Tables\Course.sql" />
     <Build Include="dbo\Tables\__EFMigrationsHistory.sql" />
     <Build Include="dbo\Tables\Teacher.sql" />
+    <Build Include="dbo\Tables\User.sql" />
+    <Build Include="identity\Tables\RefreshTokens.sql" />
+    <Build Include="identity\Tables\AspNetUserTokens.sql" />
+    <Build Include="identity\Tables\AspNetUserRoles.sql" />
+    <Build Include="identity\Tables\AspNetUserLogins.sql" />
+    <Build Include="identity\Tables\AspNetUserClaims.sql" />
+    <Build Include="identity\Tables\AspNetRoleClaims.sql" />
+    <Build Include="identity\Tables\AspNetUsers.sql" />
+    <Build Include="identity\Tables\AspNetRoles.sql" />
+    <Build Include="identity\Tables\__EFMigrationsHistory.sql" />
+    <Build Include="Security\identity.sql" />
   </ItemGroup>
 </Project>

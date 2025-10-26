@@ -1,6 +1,7 @@
+using Microsoft.OpenApi.Models;
 using NLog.Extensions.Logging;
 using SCH.Core.Cors;
-using SCH.Core.DependancyConfiguration;
+using SCH.Core.Extensions;
 using SCH.Core.ErrorHandling;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,12 +13,17 @@ builder.Services.AddAllowedOrigins(
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.ConfigureControllersWithFilters(); // Includes ModelValidationFilter
 builder.Services.AddServices();
 builder.Services.AddRepositories();
 builder.Services.AddUtilities();
-builder.Services.AddDbContexts(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Register both contexts (same database, different schemas)
+builder.Services.AddDbContexts(connectionString, connectionString);
+
 builder.Services.AddUnitOfWorks();
+builder.Services.AddAuthenticationWithJwt(builder.Configuration);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog("nlog.config");
@@ -28,7 +34,41 @@ builder.Services.AddOpenApi();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "SCH API",
+        Version = "v1",
+        Description = "School Management System API with JWT Authentication"
+    });
+
+    // Add JWT Authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token in the text input below.\n\nExample: \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -53,6 +93,7 @@ app.UseExceptionHandler();
 
 app.UseCors(allowOriginsPolicy);
 
+app.UseAuthentication(); // Must come before UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();

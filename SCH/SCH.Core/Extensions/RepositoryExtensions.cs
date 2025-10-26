@@ -1,16 +1,23 @@
-﻿namespace SCH.Core.DependancyConfiguration
+namespace SCH.Core.Extensions
 {
     using Microsoft.Extensions.DependencyInjection;
-    using SCH.Shared.Utility;
+    using SCH.Repositories;
     using System.Reflection;
 
-    public static class UtilityConfiguration
+    /// <summary>
+    /// Extension methods for configuring repository services
+    /// </summary>
+    public static class RepositoryExtensions
     {
-        public static void AddUtilities(this IServiceCollection services)
+        /// <summary>
+        /// Automatically registers all repository implementations from SCH.Repositories assembly
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        public static void AddRepositories(this IServiceCollection services)
         {
-            Assembly assembly = Assembly.Load("SCH.Shared");
+            Assembly assembly = Assembly.Load("SCH.Repositories");
 
-            Type superInterfaceType = typeof(IUtility);
+            Type superInterfaceType = typeof(IRepository);
 
             IEnumerable<Type> types = assembly.GetTypes()
                 .Where(t => 
@@ -27,7 +34,7 @@
 
                 services.AddScoped(parentInteface, type);
             }
-
         }
     }
 }
+

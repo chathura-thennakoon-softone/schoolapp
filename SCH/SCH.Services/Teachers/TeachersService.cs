@@ -72,7 +72,7 @@ namespace SCH.Services.Teachers
 
             if (teacherEntity == null)
             {
-                throw SCHDomainException.Notfound();
+                throw SCHDomainException.NotFound();
             }
 
             teacherEntity.Name = teacher.Name;

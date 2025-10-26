@@ -1,16 +1,23 @@
-﻿namespace SCH.Core.DependancyConfiguration
+namespace SCH.Core.Extensions
 {
     using Microsoft.Extensions.DependencyInjection;
     using SCH.Repositories;
     using System.Reflection;
 
-    public static class RepositoriesConfiguration
+    /// <summary>
+    /// Extension methods for configuring Unit of Work services
+    /// </summary>
+    public static class UnitOfWorkExtensions
     {
-        public static void AddRepositories(this IServiceCollection services)
+        /// <summary>
+        /// Automatically registers all Unit of Work implementations from SCH.Repositories assembly
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        public static void AddUnitOfWorks(this IServiceCollection services)
         {
             Assembly assembly = Assembly.Load("SCH.Repositories");
 
-            Type superInterfaceType = typeof(IRepository);
+            Type superInterfaceType = typeof(IUnitOfWork);
 
             IEnumerable<Type> types = assembly.GetTypes()
                 .Where(t => 
@@ -27,7 +34,7 @@
 
                 services.AddScoped(parentInteface, type);
             }
-
         }
     }
 }
+
