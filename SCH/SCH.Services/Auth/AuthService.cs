@@ -446,6 +446,30 @@ namespace SCH.Services.Auth
         }
 
         /// <summary>
+        /// Checks if a username is available
+        /// </summary>
+        public async Task<bool> IsUsernameAvailableAsync(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                return false;
+
+            var user = await _userManager.FindByNameAsync(username);
+            return user == null;
+        }
+
+        /// <summary>
+        /// Checks if an email is available
+        /// </summary>
+        public async Task<bool> IsEmailAvailableAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            var user = await _userManager.FindByEmailAsync(email);
+            return user == null;
+        }
+
+        /// <summary>
         /// Parses device name from user agent
         /// </summary>
         private static string? ParseDeviceName(string? userAgent)

@@ -9,6 +9,13 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'register',
+    loadComponent: () =>
+      import('./pages/register-page/register-page').then(
+        (m) => m.RegisterPage
+      )
+  },
+  {
     path: 'sch',
     loadComponent: () =>
       import('./sch/pages/schpage/schpage').then(

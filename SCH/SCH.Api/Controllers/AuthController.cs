@@ -31,9 +31,9 @@ namespace SCH.API.Controllers
             [FromBody] LoginRequestDto request,
             [FromHeader(Name = "User-Agent")] string? userAgent = null)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            var response = await _authService.LoginAsync(request, ipAddress, userAgent);
+            LoginResponseDto response = await _authService.LoginAsync(request, ipAddress, userAgent);
 
             return Ok(response);
         }
@@ -47,7 +47,7 @@ namespace SCH.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            var response = await _authService.RegisterAsync(request);
+            LoginResponseDto response = await _authService.RegisterAsync(request);
 
             return Ok(response);
         }
@@ -63,9 +63,9 @@ namespace SCH.API.Controllers
             [FromBody] RefreshTokenRequestDto request,
             [FromHeader(Name = "User-Agent")] string? userAgent = null)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string? ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            var response = await _authService.RefreshTokenAsync(request, ipAddress, userAgent);
+            LoginResponseDto response = await _authService.RefreshTokenAsync(request, ipAddress, userAgent);
 
             return Ok(response);
         }
@@ -78,7 +78,7 @@ namespace SCH.API.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            var userId = GetCurrentUserId();
+            int userId = GetCurrentUserId();
 
             await _authService.LogoutAsync(userId);
 
@@ -93,10 +93,10 @@ namespace SCH.API.Controllers
         [Authorize]
         public IActionResult GetCurrentUser()
         {
-            var userId = GetCurrentUserId();
-            var username = User.FindFirst(ClaimTypes.Name)?.Value;
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            int userId = GetCurrentUserId();
+            string? username = User.FindFirst(ClaimTypes.Name)?.Value;
+            string? email = User.FindFirst(ClaimTypes.Email)?.Value;
+            List<string> roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 
             return Ok(new
             {
@@ -115,8 +115,8 @@ namespace SCH.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetActiveSessions()
         {
-            var userId = GetCurrentUserId();
-            var sessions = await _authService.GetActiveSessionsAsync(userId);
+            int userId = GetCurrentUserId();
+            List<SessionDto> sessions = await _authService.GetActiveSessionsAsync(userId);
 
             return Ok(sessions);
         }
@@ -130,7 +130,7 @@ namespace SCH.API.Controllers
         [Authorize]
         public async Task<IActionResult> RevokeSession(int sessionId)
         {
-            var userId = GetCurrentUserId();
+            int userId = GetCurrentUserId();
 
             await _authService.RevokeTokenAsync(sessionId, userId);
 
@@ -146,11 +146,37 @@ namespace SCH.API.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
-            var userId = GetCurrentUserId();
+            int userId = GetCurrentUserId();
 
             await _authService.ChangePasswordAsync(userId, request);
 
             return Ok(new { message = "Password changed successfully. Please log in again." });
+        }
+
+        /// <summary>
+        /// Check if username is available
+        /// </summary>
+        /// <param name="username">Username to check</param>
+        /// <returns>Boolean indicating availability</returns>
+        [HttpGet("check-username/{username}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckUsername(string username)
+        {
+            bool isAvailable = await _authService.IsUsernameAvailableAsync(username);
+            return Ok(new { isAvailable });
+        }
+
+        /// <summary>
+        /// Check if email is available
+        /// </summary>
+        /// <param name="email">Email to check</param>
+        /// <returns>Boolean indicating availability</returns>
+        [HttpGet("check-email/{email}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckEmail(string email)
+        {
+            bool isAvailable = await _authService.IsEmailAvailableAsync(email);
+            return Ok(new { isAvailable });
         }
 
         /// <summary>
@@ -180,7 +206,7 @@ namespace SCH.API.Controllers
         /// </summary>
         private int GetCurrentUserId()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
             {
                 throw new UnauthorizedAccessException("User ID not found in token");

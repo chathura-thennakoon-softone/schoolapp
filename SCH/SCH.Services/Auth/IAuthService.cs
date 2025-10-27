@@ -61,6 +61,20 @@ namespace SCH.Services.Auth
         /// <param name="request">Change password request</param>
         /// <returns>Task</returns>
         Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
+
+        /// <summary>
+        /// Checks if a username is available
+        /// </summary>
+        /// <param name="username">Username to check</param>
+        /// <returns>True if available, false if taken</returns>
+        Task<bool> IsUsernameAvailableAsync(string username);
+
+        /// <summary>
+        /// Checks if an email is available
+        /// </summary>
+        /// <param name="email">Email to check</param>
+        /// <returns>True if available, false if taken</returns>
+        Task<bool> IsEmailAvailableAsync(string email);
     }
 }
 
