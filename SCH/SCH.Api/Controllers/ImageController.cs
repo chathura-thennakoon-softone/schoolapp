@@ -11,7 +11,7 @@
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Require authentication for all endpoints
+    [Authorize]
     public class ImageController : Controller
     {
         private readonly IImageService imageService;

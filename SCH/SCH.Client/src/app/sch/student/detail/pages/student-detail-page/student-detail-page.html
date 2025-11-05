@@ -1,11 +1,11 @@
 <div class="container">
-    @if (!studentId) {
+    @if (!studentId()) {
     <h2>Add Student</h2>
     } @else {
     <h2>Edit Student</h2>
     }
 
-    @if (!isStudentLoading) {
+    @if (!isStudentLoading()) {
     <form
         [formGroup]="studentForm"
         (ngSubmit)="onSubmit()"
@@ -124,31 +124,31 @@
                         (change)="onFileChange($event)"
                         accept='.jpg, .JPG, .jpeg, .JPEG, .png, .PNG, .jfif, .JFIF'
                         id="selectedImage"
-                        [disabled]="isStudentSaving || isUploadingImage || isDeletingImage"
+                        [disabled]="isStudentSaving() || isUploadingImage() || isDeletingImage()"
                     />
                 </div>
 
                 <figure class="figure">
-                    @if (profileImage && isImageChanged) {
+                    @if (profileImage() && isImageChanged()) {
                     <img
-                        src="{{ profileImage }}"
+                        src="{{ profileImage() }}"
                         [width]="100"
                         [height]="100"
                         class="img-fluid ml-3 thumbnail-img"
-                        id="img_create_image"
+                        id="img_preview_image"
                         alt=""
                         role="presentation"
                     >
                     }
 
-                    @if (student?.imageUrl && !isImageChanged) {
+                    @if (student()?.image && !isImageChanged()) {
                     <img
-                        [src]="student!.imageUrl"
+                        [src]="student()!.image | secureImage:'image/getStudentProfile' | async"
                         [width]="100"
                         [height]="100"
                         class="img-fluid ml-3 thumbnail-img"
-                        id="img_create_image"
-                        alt=""
+                        id="img_current_image"
+                        alt="Profile"
                         role="presentation"
                     >
                     }
@@ -161,11 +161,11 @@
         <button
             type="submit"
             class="btn btn-primary"
-            [disabled]="isStudentSaving || isUploadingImage || isDeletingImage"
+            [disabled]="isStudentSaving() || isUploadingImage() || isDeletingImage()"
         >Save</button>
         <button
             (click)="onBack()"
-            [disabled]="isStudentSaving || isUploadingImage || isDeletingImage"
+            [disabled]="isStudentSaving() || isUploadingImage() || isDeletingImage()"
         >Back</button>
     </form>
     }

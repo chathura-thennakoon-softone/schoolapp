@@ -100,7 +100,7 @@ BEGIN
         'admin@schoolapp.com',                                                      -- Email
         'ADMIN@SCHOOLAPP.COM',                                                      -- NormalizedEmail
         1,                                                                          -- EmailConfirmed
-        'AQAAAAIAAYagAAAAEJ7KzRZdCqVHxE0Zq0x0xGqB9nY8fZRW9Y8nW8xV0vKqVHxE0Zq0x0xGqB9nY8fZ==', -- PasswordHash for "Admin123!"
+        'AQAAAAIAAYagAAAAEKkmWMV2APYtFbk6tjDGmXF8mLC0ScPolspmV06LnuJxcxnzJMupu6OUp7txvNIDgQ==', -- PasswordHash for "Admin123!" (generated with ASP.NET Identity PasswordHasher)
         NEWID(),                                                                    -- SecurityStamp
         NEWID(),                                                                    -- ConcurrencyStamp
         NULL,                                                                       -- PhoneNumber

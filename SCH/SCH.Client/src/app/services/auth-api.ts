@@ -11,7 +11,9 @@ import { RegisterRequest } from '../interfaces/register-request';
 import { SessionInfo } from '../interfaces/session-info';
 import { User } from '../interfaces/user';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthApi {
 
   private readonly apiUrl: string;

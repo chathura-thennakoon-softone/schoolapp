@@ -1,23 +1,27 @@
-import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-@Injectable()
-export class UnauthorizedInterceptor implements HttpInterceptor {
+/**
+ * Unauthorized/Forbidden Interceptor - Handles HTTP 401 and 403 errors
+ * - 401 Unauthorized: User not authenticated → redirect to login
+ * - 403 Forbidden: User authenticated but lacks permission → show unauthorized page
+ */
+export const unauthorizedInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
 
-  constructor(private readonly router: Router) {}
-
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(req).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          // Navigate to unauthorized page
-          this.router.navigate(['/unauthorized']);
-        }
-        return throwError(() => error);
-      })
-    );
-  }
-}
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        // Not authenticated - redirect to login (JWT interceptor already cleared auth state)
+        router.navigate(['/login']);
+      } else if (error.status === 403) {
+        // Authenticated but forbidden - show unauthorized page
+        router.navigate(['/unauthorized']);
+      }
+      return throwError(() => error);
+    })
+  );
+};

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -18,6 +18,7 @@ import { concatMap, from, mergeMap, of } from 'rxjs';
 import { Notification } from '../../../../../services/notification';
 import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { StudentPhotoCell } from '../../../selectors/student-photo-cell/student-photo-cell';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -34,14 +35,9 @@ export class StudentListPage {
   >[] = [
     {
       headerName: 'Photo',
-      field: 'imageUrl',
+      field: 'image',
       width: 80,
-      cellRenderer: (params: any) => {
-        if (params.value) {
-          return `<img src="${params.value}" alt="Student" style="width:40px;height:40px;border-radius:50%;" />`;
-        }
-        return '';
-      },
+      cellRenderer: StudentPhotoCell,
       sortable: false,
       filter: false,
       suppressMovable: true,
@@ -107,15 +103,13 @@ export class StudentListPage {
     },
   ];
 
-  protected rowData: Student[] = [];
-
-  protected gridDataLoading = false;
-  public isDeleting = false;
+  protected readonly rowData = signal<Student[]>([]);
+  protected readonly gridDataLoading = signal(false);
+  protected readonly isDeleting = signal(false);
 
   private readonly apiUrl: string;
 
   constructor(
-    private readonly cdr: ChangeDetectorRef,
     private readonly router: Router,
     private readonly _avRoute: ActivatedRoute,
     private readonly studentApi: StudentApi,
@@ -132,32 +126,25 @@ export class StudentListPage {
   }
 
   private setGridData(): void {
-    this.gridDataLoading = true;
+    this.gridDataLoading.set(true);
 
     this.studentApi
       .getStudents(true)
       .subscribe((data) => {
         if (data?.length) {
-          data.forEach((student: Student) => {
+          for (const student of data) {
             if (student.startDate) {
               student.startDate = new Date(student.startDate);
             }
+          }
 
-            if (student.image) {
-              student.imageUrl = `${this.apiUrl}/Image/getStudentProfile/${student.image}`;
-            } else {
-              student.imageUrl = '';
-            }
-          });
-
-          this.rowData = data;
+          this.rowData.set(data);
         } else {
-          this.rowData = [];
+          this.rowData.set([]);
         }
       })
       .add(() => {
-        this.gridDataLoading = false;
-        this.cdr.markForCheck();
+        this.gridDataLoading.set(false);
       });
   }
 
@@ -188,13 +175,13 @@ export class StudentListPage {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.onDeletes(this.rowData);
+        this.onDeletes(this.rowData());
       }
     });
   }
 
   private onDeletes(students: Student[]): void {
-    this.isDeleting = true;
+    this.isDeleting.set(true);
 
     from(students)
       .pipe(
@@ -213,15 +200,13 @@ export class StudentListPage {
         complete: () => {
           this.setGridData();
           this.notification.success('Student deleted successfully');
-          this.isDeleting = false;
+          this.isDeleting.set(false);
         },
         error: (err) => {
           this.notification.error('Failed to delete student');
-          this.isDeleting = false;
+          this.isDeleting.set(false);
         },
       });
-
-    this.cdr.markForCheck();
   }
 
   protected onAdd(): void {

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { Student } from '../../../../../sch/interfaces/student';
 import {
@@ -14,41 +14,36 @@ import { AppConfig } from '../../../../../interfaces/app-config';
 import { ImageApi } from '../../../../../sch/services/image-api';
 import { CommonModule, formatDate } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
+import { SecureImage } from '../../../../../pipes/secure-image';
 
 @Component({
   selector: 'sch-student-detail-page',
-  imports: [RouterOutlet, CommonModule, ReactiveFormsModule],
+  imports: [RouterOutlet, CommonModule, ReactiveFormsModule, SecureImage],
   templateUrl: './student-detail-page.html',
   styleUrl: './student-detail-page.scss',
 })
-export class StudentDetailPage {
-  protected studentId = 0;
-
-  protected student: Student | null = null;
-
-  protected isStudentLoading = false;
-  protected isStudentSaving = false;
-  protected isUploadingImage = false;
-  protected isDeletingImage = false;
+export class StudentDetailPage implements OnInit {
+  protected readonly studentId = signal(0);
+  protected readonly student = signal<Student | null>(null);
+  protected readonly isStudentLoading = signal(false);
+  protected readonly isStudentSaving = signal(false);
+  protected readonly isUploadingImage = signal(false);
+  protected readonly isDeletingImage = signal(false);
+  protected readonly isImageChanged = signal(false);
+  protected readonly profileImage = signal('');
 
   protected studentForm: FormGroup;
-
-  protected isImageChanged = false;
   private profileImageFile: File | null = null;
-  protected profileImage = '';
-  private readonly apiUrl;
 
   constructor(
     private readonly _avRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly cdr: ChangeDetectorRef,
     private readonly studentApi: StudentApi,
     private readonly imageApi: ImageApi,
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly notification: Notification
   ) {
-    this.apiUrl = this.appConfig.apiUrl;
     this.studentForm = this.fb.group({
       id: [0],
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -62,17 +57,17 @@ export class StudentDetailPage {
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
-      this.studentId = +params['id'] || 0;
+      this.studentId.set(+params['id'] || 0);
 
       this.setStudent();
     });
   }
 
   private reset(): void {
-    this.student = null;
+    this.student.set(null);
     this.profileImageFile = null;
-    this.profileImage = '';
-    this.isImageChanged = false;
+    this.profileImage.set('');
+    this.isImageChanged.set(false);
     this.studentForm.reset({
       id: 0,
       firstName: '',
@@ -86,24 +81,17 @@ export class StudentDetailPage {
 
   private setStudent(): void {
     this.reset();
-    if (this.studentId) {
-      this.isStudentLoading = true;
+    if (this.studentId()) {
+      this.isStudentLoading.set(true);
       this.studentApi
-        .getStudent(this.studentId)
+        .getStudent(this.studentId())
         .subscribe({
           next: (student) => {
             if (student) {
-              this.student = student;
-
-              if (this.student.startDate) {
-                this.student.startDate = new Date(this.student.startDate);
+              if (student.startDate) {
+                student.startDate = new Date(student.startDate);
               }
-
-              if (this.student.image) {
-                this.student.imageUrl = `${this.apiUrl}/Image/getStudentProfile/${this.student.image}`;
-              } else {
-                this.student.imageUrl = '';
-              }
+              this.student.set(student);
 
               this.setFormData();
             } else {
@@ -117,8 +105,7 @@ export class StudentDetailPage {
           },
         })
         .add(() => {
-          this.isStudentLoading = false;
-          this.cdr.markForCheck();
+          this.isStudentLoading.set(false);
         });
     } else {
       this.setFormData();
@@ -126,19 +113,20 @@ export class StudentDetailPage {
   }
 
   private setFormData(): void {
-    if (this.student) {
+    const student = this.student();
+    if (student) {
       let date: string | null = null;
-      if (this.student.startDate) {
-        date = formatDate(this.student.startDate, 'yyyy-MM-dd', 'en');
+      if (student.startDate) {
+        date = formatDate(student.startDate, 'yyyy-MM-dd', 'en');
       }
 
       this.studentForm.setValue({
-        id: this.student.id,
-        firstName: this.student.firstName,
-        lastName: this.student.lastName,
-        email: this.student.email,
-        phoneNumber: this.student.phoneNumber,
-        ssn: this.student.ssn,
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        phoneNumber: student.phoneNumber,
+        ssn: student.ssn,
         startDate: date,
       });
     }
@@ -146,13 +134,14 @@ export class StudentDetailPage {
 
   protected onSubmit() {
     if (this.studentForm.valid) {
-      if (this.isImageChanged && this.profileImageFile) {
+      if (this.isImageChanged() && this.profileImageFile) {
         this.uploadImage();
       } else {
         let image: string | null = null;
 
-        if (this.student) {
-          image = this.student.image;
+        const student = this.student();
+        if (student) {
+          image = student.image;
         }
 
         this.saveStudent(image);
@@ -163,7 +152,7 @@ export class StudentDetailPage {
   }
 
   private uploadImage(): void {
-    this.isUploadingImage = true;
+    this.isUploadingImage.set(true);
 
     this.imageApi
       .uploadStudentProfile(this.profileImageFile!)
@@ -171,17 +160,17 @@ export class StudentDetailPage {
         this.saveStudent(data.filename);
       })
       .add(() => {
-        this.isUploadingImage = false;
+        this.isUploadingImage.set(false);
       });
   }
 
   private deleteImage(fileName: string): void {
-    this.isDeletingImage = true;
+    this.isDeletingImage.set(true);
     this.imageApi
       .deleteStudentProfile(fileName)
       .subscribe()
       .add(() => {
-        this.isDeletingImage = false;
+        this.isDeletingImage.set(false);
       });
   }
 
@@ -196,17 +185,17 @@ export class StudentDetailPage {
       startDate: new Date(this.studentForm.value.startDate),
       image: image,
       isActive: true,
-      imageUrl: null,
     };
 
     if (student.id > 0) {
-      this.isStudentSaving = true;
+      this.isStudentSaving.set(true);
       this.studentApi
         .updateStudent(student)
         .subscribe({
           next: () => {
-            if (this.isImageChanged && this.student!.image) {
-              this.deleteImage(this.student!.image);
+            const currentStudent = this.student();
+            if (this.isImageChanged() && currentStudent?.image) {
+              this.deleteImage(currentStudent.image);
             }
             this.setStudent();
             this.notification.success('Student updated successfully');
@@ -216,10 +205,10 @@ export class StudentDetailPage {
           },
         })
         .add(() => {
-          this.isStudentSaving = false;
+          this.isStudentSaving.set(false);
         });
     } else {
-      this.isStudentSaving = true;
+      this.isStudentSaving.set(true);
       this.studentApi
         .insertStudent(student)
         .subscribe({
@@ -232,7 +221,7 @@ export class StudentDetailPage {
           },
         })
         .add(() => {
-          this.isStudentSaving = false;
+          this.isStudentSaving.set(false);
         });
     }
   }
@@ -242,14 +231,14 @@ export class StudentDetailPage {
   }
 
   private validateAllFormFields(formGroup: FormGroup) {
-    Object.keys(formGroup.controls).forEach((field) => {
+    for (const field of Object.keys(formGroup.controls)) {
       const control = formGroup.get(field);
       if (control instanceof FormControl) {
         control.markAsTouched({ onlySelf: true });
       } else if (control instanceof FormGroup) {
         this.validateAllFormFields(control);
       }
-    });
+    }
   }
 
   protected onFileChange(event: any) {
@@ -277,14 +266,11 @@ export class StudentDetailPage {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onloadend = () => {
-          this.profileImage = reader.result as string;
-          this.cdr.markForCheck();
+          this.profileImage.set(reader.result as string);
         };
-        this.isImageChanged = true;
+        this.isImageChanged.set(true);
         this.profileImageFile = file;
       }
-
-      this.cdr.markForCheck();
     }
   }
 

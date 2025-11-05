@@ -8,5 +8,4 @@ export interface Student {
     image: string | null;
     startDate: Date | null;
     isActive: boolean;
-    imageUrl: string | null;
 }

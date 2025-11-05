@@ -1,23 +1,22 @@
-import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-@Injectable()
-export class ServerErrorInterceptor implements HttpInterceptor {
+/**
+ * Server Error Interceptor - Handles HTTP 500 errors
+ */
+export const serverErrorInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
 
-  constructor(private readonly router: Router) {}
-
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(req).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 500) {
-          // Navigate to server error page
-          this.router.navigate(['/servererror']);
-        }
-        return throwError(() => error);
-      })
-    );
-  }
-}
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 500) {
+        // Navigate to server error page
+        router.navigate(['/servererror']);
+      }
+      return throwError(() => error);
+    })
+  );
+};

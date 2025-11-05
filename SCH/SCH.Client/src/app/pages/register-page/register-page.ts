@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -18,6 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthApi } from '../../services/auth-api';
+import { Auth } from '../../services/auth';
 import { Notification } from '../../services/notification';
 import { RegisterRequest } from '../../interfaces/register-request';
 
@@ -34,21 +35,20 @@ import { RegisterRequest } from '../../interfaces/register-request';
     MatIconModule,
     MatProgressSpinnerModule,
   ],
-  providers: [AuthApi],
   templateUrl: './register-page.html',
   styleUrl: './register-page.scss',
 })
 export class RegisterPage {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authApi = inject(AuthApi);
+  private readonly authService = inject(Auth);
   private readonly router = inject(Router);
   private readonly notificationService = inject(Notification);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   public registerForm: FormGroup;
-  public isLoading = false;
-  public hidePassword = true;
-  public hideConfirmPassword = true;
+  public isLoading = signal(false);
+  public hidePassword = signal(true);
+  public hideConfirmPassword = signal(true);
 
   constructor() {
     this.registerForm = this.formBuilder.nonNullable.group(
@@ -293,21 +293,19 @@ export class RegisterPage {
   public onSubmit(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
+      this.notificationService.error('Please correct the form errors.');
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     const registerRequest: RegisterRequest = this.registerForm.value;
 
-    this.authApi
+    this.authService
       .register(registerRequest)
       .subscribe({
         next: (response) => {
-          this.isLoading = false;
-          // Store tokens (you might want to use a proper auth service for this)
-          localStorage.setItem('accessToken', response.accessToken);
-          localStorage.setItem('refreshToken', response.refreshToken);
+          this.isLoading.set(false);
 
           this.notificationService.success(
             `Welcome ${response.user.firstName}! Registration successful.`
@@ -317,7 +315,7 @@ export class RegisterPage {
           this.router.navigate(['/sch/dashboard']);
         },
         error: (error) => {
-          this.isLoading = false;
+          this.isLoading.set(false);
 
           let errorMessage = 'Registration failed. Please try again.';
 
@@ -333,11 +331,7 @@ export class RegisterPage {
           }
 
           this.notificationService.error(errorMessage);
-          this.cdr.markForCheck();
         },
-      })
-      .add(() => {
-        this.cdr.markForCheck();
       });
   }
 
