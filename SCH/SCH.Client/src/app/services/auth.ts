@@ -6,6 +6,7 @@ import { User } from '../interfaces/user';
 import { LoginRequest } from '../interfaces/login-request';
 import { RegisterRequest } from '../interfaces/register-request';
 import { Observable, tap, catchError, throwError } from 'rxjs';
+import { APP_CONFIG } from '../injection-tokens/app-config.token';
 
 /**
  * Authentication service that manages user state, tokens, and auth logic
@@ -16,11 +17,22 @@ import { Observable, tap, catchError, throwError } from 'rxjs';
 export class Auth {
   private readonly authApi = inject(AuthApi);
   private readonly router = inject(Router);
+  private readonly config = inject(APP_CONFIG);
 
   // Token keys for localStorage
   private readonly ACCESS_TOKEN_KEY = 'accessToken';
   private readonly REFRESH_TOKEN_KEY = 'refreshToken';
   private readonly USER_KEY = 'user';
+  private readonly TOKEN_EXPIRY_KEY = 'tokenExpiry';
+  private readonly TOKEN_ISSUE_TIME_KEY = 'tokenIssueTime';
+  private readonly REMEMBER_ME_KEY = 'rememberMe';
+  private readonly REFRESH_TOKEN_EXPIRY_KEY = 'refreshTokenExpiry';
+
+  // Timer management
+  private idleTimer?: ReturnType<typeof setTimeout>;
+  private refreshTimer?: ReturnType<typeof setTimeout>;
+  private activityChannel?: BroadcastChannel;
+  private lastActivityTime = Date.now();
 
   // Signals for reactive state management
   private readonly currentUserSignal = signal<User | null>(null);
@@ -46,11 +58,47 @@ export class Auth {
   private initializeAuthState(): void {
     const token = this.getAccessToken();
     const user = this.getUserFromStorage();
+    const expiryTime = this.getTokenExpiryFromStorage();
+    const refreshTokenExpiry = this.getRefreshTokenExpiryFromStorage();
+    const rememberMe = this.getRememberMeFromStorage();
 
-    if (token && user) {
-      this.currentUserSignal.set(user);
-      this.isAuthenticatedSignal.set(true);
+    if (!token || !user || !expiryTime) {
+      return;
     }
+
+    const now = Date.now();
+
+    // Check if access token is expired
+    if (now >= expiryTime) {
+      // If RememberMe is OFF, logout immediately (don't use refresh token)
+      if (!rememberMe) {
+        this.logout();
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      // If RememberMe is ON, check if refresh token is valid
+      if (!refreshTokenExpiry || now >= refreshTokenExpiry) {
+        // Refresh token also expired, logout
+        this.logout();
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      // Refresh token is still valid, try to refresh
+      this.refreshToken().subscribe({
+        error: () => {
+          this.logout();
+          this.router.navigate(['/login']);
+        }
+      });
+      return;
+    }
+
+    // Access token is still valid
+    this.currentUserSignal.set(user);
+    this.isAuthenticatedSignal.set(true);
+    this.startTimers();
   }
 
   /**
@@ -58,7 +106,7 @@ export class Auth {
    */
   public login(request: LoginRequest): Observable<AuthResponse> {
     return this.authApi.login(request).pipe(
-      tap((response) => this.handleAuthSuccess(response)),
+      tap((response) => this.handleAuthSuccess(response, request.rememberMe ?? false)),
       catchError((error) => {
         this.clearAuthState();
         return throwError(() => error);
@@ -97,19 +145,181 @@ export class Auth {
   }
 
   /**
+   * Record user activity (public for use in interceptor)
+   */
+  public recordActivity(): void {
+    this.lastActivityTime = Date.now();
+    this.activityChannel?.postMessage({ type: 'activity', timestamp: Date.now() });
+    this.resetIdleTimer();
+  }
+
+  /**
+   * Start all timers
+   */
+  private startTimers(): void {
+    this.clearTimers();
+    this.setupActivityDetection();
+    this.startIdleTimer();
+    this.startRefreshTimer();
+  }
+
+  /**
+   * Setup activity detection with cross-tab support
+   */
+  private setupActivityDetection(): void {
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    const handler = () => this.recordActivity();
+
+    for (const event of events) {
+      globalThis.addEventListener(event, handler, { passive: true });
+    }
+
+    // Cross-tab communication
+    this.activityChannel = new BroadcastChannel('user_activity');
+    this.activityChannel.onmessage = () => this.recordActivity();
+  }
+
+  /**
+   * Start idle timer
+   */
+  private startIdleTimer(): void {
+    // Validate config
+    if (!this.config.idleLogoutTime || 
+        this.config.idleLogoutTime <= 0 || 
+        this.config.idleLogoutTime > 1) {
+      return; // Skip idle timer if config is invalid
+    }
+
+    const expiryTime = this.getTokenExpiryFromStorage();
+    const issueTime = this.getTokenIssueTimeFromStorage();
+    if (!expiryTime || !issueTime) return;
+
+    const tokenDurationMs = expiryTime - issueTime;
+    const idleTimeout = tokenDurationMs * this.config.idleLogoutTime;
+
+    this.idleTimer = globalThis.setTimeout(() => {
+      this.logout();
+      this.router.navigate(['/login'], { queryParams: { reason: 'idle' } });
+    }, idleTimeout);
+  }
+
+  /**
+   * Reset idle timer
+   */
+  private resetIdleTimer(): void {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+    }
+    this.startIdleTimer();
+  }
+
+  /**
+   * Start refresh timer based on original token issue time
+   */
+  private startRefreshTimer(): void {
+    // Validate config
+    if (!this.config.refreshTokenTime || 
+        this.config.refreshTokenTime <= 0 || 
+        this.config.refreshTokenTime > 1) {
+      return; // Skip refresh timer if config is invalid
+    }
+
+    const issueTime = this.getTokenIssueTimeFromStorage();
+    const expiryTime = this.getTokenExpiryFromStorage();
+    if (!issueTime || !expiryTime) return;
+
+    const now = Date.now();
+    const durationMs = expiryTime - issueTime;
+    const refreshAtTime = issueTime + (durationMs * (1 - this.config.refreshTokenTime));
+    const timeUntilRefresh = refreshAtTime - now;
+
+    // If already past refresh time, refresh immediately
+    if (timeUntilRefresh <= 0) {
+      this.refreshToken().subscribe({
+        error: (err) => {
+          console.error('Auto-refresh failed:', err);
+          this.logout();
+          this.router.navigate(['/login']);
+        }
+      });
+      return;
+    }
+
+    this.refreshTimer = globalThis.setTimeout(() => {
+      this.refreshToken().subscribe({
+        error: (err) => {
+          console.error('Auto-refresh failed:', err);
+          this.logout();
+          this.router.navigate(['/login']);
+        }
+      });
+    }, timeUntilRefresh);
+  }
+
+  /**
+   * Clear all timers
+   */
+  private clearTimers(): void {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    this.activityChannel?.close();
+  }
+
+  /**
+   * Get token expiry from localStorage
+   */
+  private getTokenExpiryFromStorage(): number | null {
+    const expiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+    return expiry ? Number.parseInt(expiry, 10) : null;
+  }
+
+  /**
+   * Get token issue time from localStorage
+   */
+  private getTokenIssueTimeFromStorage(): number | null {
+    const issueTime = localStorage.getItem(this.TOKEN_ISSUE_TIME_KEY);
+    return issueTime ? Number.parseInt(issueTime, 10) : null;
+  }
+
+  /**
+   * Get remember me from localStorage
+   */
+  private getRememberMeFromStorage(): boolean {
+    const rememberMe = localStorage.getItem(this.REMEMBER_ME_KEY);
+    return rememberMe === 'true';
+  }
+
+  /**
+   * Get refresh token expiry from localStorage
+   */
+  private getRefreshTokenExpiryFromStorage(): number | null {
+    const expiry = localStorage.getItem(this.REFRESH_TOKEN_EXPIRY_KEY);
+    return expiry ? Number.parseInt(expiry, 10) : null;
+  }
+
+  /**
    * Refresh access token
    */
   public refreshToken(): Observable<AuthResponse> {
     const accessToken = this.getAccessToken();
     const refreshToken = this.getRefreshToken();
+    const refreshTokenExpiry = this.getRefreshTokenExpiryFromStorage();
+    const rememberMe = this.getRememberMeFromStorage();
 
     if (!accessToken || !refreshToken) {
       this.clearAuthState();
       return throwError(() => new Error('No tokens available'));
     }
 
+    // Check if refresh token is expired before calling backend
+    if (refreshTokenExpiry && Date.now() >= refreshTokenExpiry) {
+      this.clearAuthState();
+      this.router.navigate(['/login']);
+      return throwError(() => new Error('Refresh token expired'));
+    }
+
     return this.authApi.refreshToken({ accessToken, refreshToken }).pipe(
-      tap((response) => this.handleAuthSuccess(response)),
+      tap((response) => this.handleAuthSuccess(response, rememberMe ?? false)),
       catchError((error) => {
         this.clearAuthState();
         this.router.navigate(['/login']);
@@ -150,15 +360,26 @@ export class Auth {
   /**
    * Handle successful authentication
    */
-  private handleAuthSuccess(response: AuthResponse): void {
-    // Store tokens
+  private handleAuthSuccess(response: AuthResponse, rememberMe: boolean = false): void {
+    const now = Date.now();
+    const expiryTime = now + (response.expiresIn * 1000);
+    const refreshTokenExpiryTime = now + (response.refreshTokenExpiresIn * 1000);
+
+    // Store tokens and timing info
     localStorage.setItem(this.ACCESS_TOKEN_KEY, response.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
+    localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
+    localStorage.setItem(this.TOKEN_ISSUE_TIME_KEY, now.toString());
+    localStorage.setItem(this.REMEMBER_ME_KEY, rememberMe.toString());
+    localStorage.setItem(this.REFRESH_TOKEN_EXPIRY_KEY, refreshTokenExpiryTime.toString());
 
     // Update state
     this.currentUserSignal.set(response.user);
     this.isAuthenticatedSignal.set(true);
+
+    // Start timers
+    this.startTimers();
   }
 
   /**
@@ -168,9 +389,14 @@ export class Auth {
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+    localStorage.removeItem(this.TOKEN_ISSUE_TIME_KEY);
+    localStorage.removeItem(this.REMEMBER_ME_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_EXPIRY_KEY);
 
     this.currentUserSignal.set(null);
     this.isAuthenticatedSignal.set(false);
+    this.clearTimers();
   }
 
   /**
@@ -202,5 +428,6 @@ export class Auth {
     }
   }
 }
+
 
 

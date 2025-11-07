@@ -41,6 +41,11 @@ namespace SCH.Repositories.Auth
         /// Updates multiple refresh tokens
         /// </summary>
         void UpdateRange(IEnumerable<RefreshToken> tokens);
+
+        /// <summary>
+        /// Gets all non-revoked tokens by family ID
+        /// </summary>
+        Task<List<RefreshToken>> GetNonRevokedTokensByFamilyIdAsync(Guid familyId);
     }
 }
 

@@ -60,6 +60,13 @@ namespace SCH.Repositories.Auth
         {
             _context.RefreshTokens.UpdateRange(tokens);
         }
+
+        public async Task<List<RefreshToken>> GetNonRevokedTokensByFamilyIdAsync(Guid familyId)
+        {
+            return await _context.RefreshTokens
+                .Where(rt => rt.FamilyId == familyId && !rt.IsRevoked)
+                .ToListAsync();
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 namespace SCH.Models.Auth.Entities
 {
+    using SCH.Models.Auth.Enums;
+
     /// <summary>
     /// Represents a refresh token for JWT authentication
     /// </summary>
@@ -14,6 +16,23 @@ namespace SCH.Models.Auth.Entities
         /// User ID who owns this token
         /// </summary>
         public int UserId { get; set; }
+
+        /// <summary>
+        /// Family ID - groups related tokens together (for multi-device support)
+        /// All tokens spawned from the same login share the same FamilyId
+        /// </summary>
+        public Guid FamilyId { get; set; }
+
+        /// <summary>
+        /// Parent token ID - tracks which token spawned this one
+        /// NULL for root tokens (created by username/password login)
+        /// </summary>
+        public int? ParentTokenId { get; set; }
+
+        /// <summary>
+        /// Indicates how this token was generated
+        /// </summary>
+        public RefreshTokenGeneratedBy GeneratedBy { get; set; }
 
         /// <summary>
         /// The actual refresh token value

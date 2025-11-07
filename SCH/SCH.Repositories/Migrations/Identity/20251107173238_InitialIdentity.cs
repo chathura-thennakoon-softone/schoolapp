@@ -190,6 +190,9 @@ namespace SCH.Repositories.Migrations.Identity
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
+                    FamilyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ParentTokenId = table.Column<int>(type: "int", nullable: true),
+                    GeneratedBy = table.Column<int>(type: "int", nullable: false),
                     Token = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     JwtId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     IpAddress = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: true),
@@ -212,6 +215,12 @@ namespace SCH.Repositories.Migrations.Identity
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_RefreshTokens_ParentTokenId",
+                        column: x => x.ParentTokenId,
+                        principalSchema: "identity",
+                        principalTable: "RefreshTokens",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -267,10 +276,23 @@ namespace SCH.Repositories.Migrations.Identity
                 column: "ExpiryDate");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_FamilyId",
+                schema: "identity",
+                table: "RefreshTokens",
+                column: "FamilyId",
+                filter: "[IsRevoked] = 0");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_IsRevoked",
                 schema: "identity",
                 table: "RefreshTokens",
                 column: "IsRevoked");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_ParentTokenId",
+                schema: "identity",
+                table: "RefreshTokens",
+                column: "ParentTokenId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",

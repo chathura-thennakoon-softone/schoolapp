@@ -21,6 +21,11 @@ namespace SCH.Models.Auth.ClientDtos
         public int ExpiresIn { get; set; }
 
         /// <summary>
+        /// Refresh token expiration time in seconds
+        /// </summary>
+        public int RefreshTokenExpiresIn { get; set; }
+
+        /// <summary>
         /// Token type (usually "Bearer")
         /// </summary>
         public string TokenType { get; set; } = "Bearer";

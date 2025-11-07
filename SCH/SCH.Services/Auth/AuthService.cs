@@ -4,6 +4,7 @@ namespace SCH.Services.Auth
     using Microsoft.Extensions.Configuration;
     using SCH.Models.Auth.ClientDtos;
     using SCH.Models.Auth.Entities;
+    using SCH.Models.Auth.Enums;
     using SCH.Models.Users.Entities;
     using SCH.Repositories.Auth;
     using SCH.Repositories.UnitOfWork;
@@ -108,15 +109,37 @@ namespace SCH.Services.Auth
             var refreshTokenExpirationDays = int.Parse(
                 _configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7");
 
+            // Revoke any existing non-revoked tokens for same user+IP+UserAgent (only 1 session per browser)
+            var existingTokens = await _refreshTokenRepository
+                .GetNonRevokedTokensByUserIdAsync(user.Id);
+
+            var tokensToRevoke = existingTokens
+                .Where(t => t.IpAddress == ipAddress && t.UserAgent == userAgent)
+                .ToList();
+
+            foreach (var token in tokensToRevoke)
+            {
+                token.IsRevoked = true;
+                token.RevokedDate = DateTime.UtcNow;
+            }
+
+            if (tokensToRevoke.Any())
+            {
+                _logger.Info($"Revoked {tokensToRevoke.Count} existing tokens for user {user.Id} from same browser");
+            }
+
             var refreshTokenEntity = new RefreshToken
             {
                 UserId = user.Id,
+                FamilyId = Guid.NewGuid(), // New family for this login session
+                ParentTokenId = null, // Root token (no parent)
+                GeneratedBy = RefreshTokenGeneratedBy.UsernamePassword,
                 Token = refreshToken,
                 JwtId = tokenId,
                 IpAddress = ipAddress,
                 UserAgent = userAgent,
                 DeviceName = ParseDeviceName(userAgent),
-                ExpiryDate = DateTime.UtcNow.AddDays(request.RememberMe ? refreshTokenExpirationDays * 2 : refreshTokenExpirationDays)
+                ExpiryDate = DateTime.UtcNow.AddDays(refreshTokenExpirationDays)
             };
 
             await _refreshTokenRepository.InsertAsync(refreshTokenEntity);
@@ -129,6 +152,7 @@ namespace SCH.Services.Auth
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 ExpiresIn = int.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "30") * 60,
+                RefreshTokenExpiresIn = refreshTokenExpirationDays * 24 * 60 * 60,
                 TokenType = "Bearer",
                 User = new UserDto
                 {
@@ -252,10 +276,15 @@ namespace SCH.Services.Auth
                 throw SCHDomainException.Unauthorized("Token user mismatch");
             }
 
+            // CRITICAL SECURITY: Detect token reuse (potential theft)
             if (storedToken.IsUsed)
             {
-                _logger.Warn($"Refresh token already used: {storedToken.Id}");
-                throw SCHDomainException.Unauthorized("Refresh token already used");
+                _logger.Warn($"SECURITY ALERT: Refresh token reuse detected for user {userId}, token {storedToken.Id}. Revoking entire token family {storedToken.FamilyId}.");
+                
+                // Revoke all tokens in this family (compromised session)
+                await RevokeTokenFamilyAsync(storedToken.FamilyId);
+                
+                throw SCHDomainException.Unauthorized("Potential security breach detected. All sessions have been revoked. Please log in again.");
             }
 
             if (storedToken.IsRevoked)
@@ -303,12 +332,15 @@ namespace SCH.Services.Auth
             var newRefreshTokenEntity = new RefreshToken
             {
                 UserId = user.Id,
+                FamilyId = storedToken.FamilyId, // Inherit family ID
+                ParentTokenId = storedToken.Id, // Track lineage
+                GeneratedBy = RefreshTokenGeneratedBy.RefreshToken,
                 Token = newRefreshToken,
                 JwtId = newTokenId,
                 IpAddress = ipAddress,
                 UserAgent = userAgent,
                 DeviceName = ParseDeviceName(userAgent),
-                ExpiryDate = DateTime.UtcNow.AddDays(refreshTokenExpirationDays)
+                ExpiryDate = storedToken.ExpiryDate // CRITICAL: Inherit original expiration, don't extend!
             };
 
             await _refreshTokenRepository.InsertAsync(newRefreshTokenEntity);
@@ -321,6 +353,7 @@ namespace SCH.Services.Auth
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 ExpiresIn = int.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "30") * 60,
+                RefreshTokenExpiresIn = refreshTokenExpirationDays * 24 * 60 * 60,
                 TokenType = "Bearer",
                 User = new UserDto
                 {
@@ -467,6 +500,25 @@ namespace SCH.Services.Auth
 
             var user = await _userManager.FindByEmailAsync(email);
             return user == null;
+        }
+
+        /// <summary>
+        /// Revokes all tokens in a token family (used for security breach detection)
+        /// </summary>
+        private async Task RevokeTokenFamilyAsync(Guid familyId)
+        {
+            var familyTokens = await _refreshTokenRepository.GetNonRevokedTokensByFamilyIdAsync(familyId);
+
+            foreach (var token in familyTokens)
+            {
+                token.IsRevoked = true;
+                token.RevokedDate = DateTime.UtcNow;
+            }
+
+            _refreshTokenRepository.UpdateRange(familyTokens);
+            await _identityUnitOfWork.SaveChangesAsync();
+
+            _logger.Info($"Revoked {familyTokens.Count} tokens in family {familyId} due to security breach");
         }
 
         /// <summary>

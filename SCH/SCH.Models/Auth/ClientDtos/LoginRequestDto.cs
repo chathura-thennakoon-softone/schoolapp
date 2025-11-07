@@ -18,11 +18,6 @@ namespace SCH.Models.Auth.ClientDtos
         /// </summary>
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Remember me option (extends refresh token expiration)
-        /// </summary>
-        public bool RememberMe { get; set; } = false;
     }
 }
 

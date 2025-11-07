@@ -83,12 +83,22 @@ namespace SCH.Repositories.DbContexts
                 entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => e.ExpiryDate);
                 entity.HasIndex(e => e.IsRevoked);
+                entity.HasIndex(e => e.FamilyId)
+                    .HasFilter("[IsRevoked] = 0"); // Filtered index for better performance
+                entity.HasIndex(e => e.ParentTokenId);
 
                 // Configure relationship with ApplicationUser
                 entity.HasOne(e => e.User)
                     .WithMany(u => u.RefreshTokens)
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure self-referencing relationship (Parent token)
+                // Note: No cascade delete to prevent issues with token chains
+                entity.HasOne<RefreshToken>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ParentTokenId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }

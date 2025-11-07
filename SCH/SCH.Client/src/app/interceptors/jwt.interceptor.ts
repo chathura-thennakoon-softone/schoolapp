@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Auth } from '../services/auth';
-import { catchError, throwError } from 'rxjs';
+import { catchError, tap, throwError } from 'rxjs';
 
 /**
  * JWT Interceptor to automatically add authentication token to HTTP requests
@@ -36,6 +36,10 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   });
 
   return next(clonedReq).pipe(
+    tap(() => {
+      // Record API request as user activity
+      authService.recordActivity();
+    }),
     catchError((error) => {
       // If 401 Unauthorized, clear auth state 
       // (navigation handled by unauthorizedInterceptor)

@@ -271,6 +271,12 @@ namespace SCH.Repositories.Migrations.Identity
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("GeneratedBy")
+                        .HasColumnType("int");
+
                     b.Property<string>("IpAddress")
                         .HasMaxLength(45)
                         .HasColumnType("nvarchar(45)");
@@ -285,6 +291,9 @@ namespace SCH.Repositories.Migrations.Identity
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<int?>("ParentTokenId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("RevokedDate")
                         .HasColumnType("datetime2");
@@ -308,7 +317,12 @@ namespace SCH.Repositories.Migrations.Identity
 
                     b.HasIndex("ExpiryDate");
 
+                    b.HasIndex("FamilyId")
+                        .HasFilter("[IsRevoked] = 0");
+
                     b.HasIndex("IsRevoked");
+
+                    b.HasIndex("ParentTokenId");
 
                     b.HasIndex("Token")
                         .IsUnique();
@@ -371,6 +385,11 @@ namespace SCH.Repositories.Migrations.Identity
 
             modelBuilder.Entity("SCH.Models.Auth.Entities.RefreshToken", b =>
                 {
+                    b.HasOne("SCH.Models.Auth.Entities.RefreshToken", null)
+                        .WithMany()
+                        .HasForeignKey("ParentTokenId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("SCH.Models.Auth.Entities.ApplicationUser", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
