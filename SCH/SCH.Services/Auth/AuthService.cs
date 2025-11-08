@@ -326,9 +326,6 @@ namespace SCH.Services.Auth
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
             // Store new refresh token
-            var refreshTokenExpirationDays = int.Parse(
-                _configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7");
-
             var newRefreshTokenEntity = new RefreshToken
             {
                 UserId = user.Id,
@@ -348,12 +345,15 @@ namespace SCH.Services.Auth
 
             _logger.Info($"Token refreshed successfully for user: {user.UserName}");
 
+            // Calculate remaining seconds until the inherited expiry date
+            var remainingSeconds = (int)(storedToken.ExpiryDate - DateTime.UtcNow).TotalSeconds;
+
             return new LoginResponseDto
             {
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 ExpiresIn = int.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "30") * 60,
-                RefreshTokenExpiresIn = refreshTokenExpirationDays * 24 * 60 * 60,
+                RefreshTokenExpiresIn = remainingSeconds, // Use actual remaining time, not full duration
                 TokenType = "Bearer",
                 User = new UserDto
                 {
