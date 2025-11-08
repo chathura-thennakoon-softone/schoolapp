@@ -169,8 +169,22 @@ export class Auth {
    * Record user activity (public for use in interceptor)
    */
   public recordActivity(): void {
+    // Don't record activity if user is not authenticated (e.g., during logout)
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
     this.lastActivityTime = Date.now();
-    this.activityChannel?.postMessage({ type: 'activity', timestamp: Date.now() });
+    
+    // Safely post to channel - it might be closed during logout
+    if (this.activityChannel) {
+      try {
+        this.activityChannel.postMessage({ type: 'activity', timestamp: Date.now() });
+      } catch {
+        // Channel is closed during logout, safe to ignore
+      }
+    }
+    
     this.resetIdleTimer();
   }
 
