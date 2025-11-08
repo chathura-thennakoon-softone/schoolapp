@@ -368,8 +368,9 @@ export class Auth {
     return this.authApi.refreshToken({ accessToken, refreshToken }).pipe(
       tap((response) => this.handleAuthSuccess(response, rememberMe ?? false)),
       catchError((error) => {
-        // Use logout to properly revoke tokens on backend before clearing state
-        this.logout(LogoutScope.CurrentBrowser);
+        // Don't call logout() here - it would make another HTTP call creating circular dependency
+        // Just clear local state since refresh failed (backend unreachable or tokens invalid)
+        this.clearAuthState();
         return throwError(() => error);
       })
     );
