@@ -3,6 +3,7 @@ namespace SCH.API.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using SCH.Models.Auth.ClientDtos;
+    using SCH.Models.Auth.Enums;
     using SCH.Services.Auth;
     using System.Security.Claims;
 
@@ -71,18 +72,27 @@ namespace SCH.API.Controllers
         }
 
         /// <summary>
-        /// Logout endpoint - revokes all user's refresh tokens
+        /// Logout endpoint - revokes refresh tokens based on scope
         /// </summary>
+        /// <param name="scope">Logout scope - determines which tokens to revoke</param>
+        /// <param name="request">Logout request containing optional refresh token</param>
+        /// <param name="refreshTokenHeader">Refresh token from header (optional)</param>
         /// <returns>Success message</returns>
         [HttpPost("logout")]
         [Authorize]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(
+            [FromQuery] LogoutScope scope = LogoutScope.CurrentSession,
+            [FromBody] LogoutRequestDto? request = null,
+            [FromHeader(Name = "X-Refresh-Token")] string? refreshTokenHeader = null)
         {
             int userId = GetCurrentUserId();
 
-            await _authService.LogoutAsync(userId);
+            // Get refresh token from body first, then fall back to header
+            string? refreshToken = request?.RefreshToken ?? refreshTokenHeader;
 
-            return Ok(new { message = "Logged out successfully" });
+            await _authService.LogoutAsync(userId, refreshToken, scope);
+
+            return Ok(new { message = $"Logged out successfully (scope: {scope})" });
         }
 
         /// <summary>

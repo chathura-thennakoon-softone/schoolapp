@@ -7,6 +7,7 @@ import { LoginRequest } from '../interfaces/login-request';
 import { RegisterRequest } from '../interfaces/register-request';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { APP_CONFIG } from '../injection-tokens/app-config.token';
+import { LogoutScope } from '../enums/logout-scope';
 
 /**
  * Authentication service that manages user state, tokens, and auth logic
@@ -75,14 +76,14 @@ export class Auth {
     if (now >= expiryTime) {
       // If RememberMe is OFF, logout immediately (don't use refresh token)
       if (!rememberMe) {
-        this.logout();
+        this.logoutLocal();  // Token expired, just clear local state
         return;
       }
 
       // If RememberMe is ON, check if refresh token is valid
       if (!refreshTokenExpiry || now >= refreshTokenExpiry) {
         // Refresh token also expired, logout
-        this.logout();
+        this.logoutLocal();  // Token expired, just clear local state
         return;
       }
 
@@ -98,7 +99,7 @@ export class Auth {
         error: () => {
           // Failed - logout and let guard handle redirect
           this.isRefreshingSignal.set(false);
-          this.logout();
+          this.logoutLocal();  // Refresh failed, just clear local state
         }
       });
       return;
@@ -137,19 +138,31 @@ export class Auth {
   }
 
   /**
-   * Logout user
+   * Logout user with specified scope
+   * @param scope - Logout scope (CurrentSession, CurrentBrowser, AllDevices)
    * Note: Does not handle navigation - caller should navigate as needed
    */
-  public logout(): void {
+  public logout(scope: LogoutScope = LogoutScope.CurrentBrowser): void {
     const token = this.getAccessToken();
+    const refreshToken = this.getRefreshToken();
     
-    if (token) {
-      // Call logout API (fire and forget)
-      this.authApi.logout().subscribe({
+    // Only call backend if token is still valid (not expired)
+    if (token && refreshToken && !this.isTokenExpired(token)) {
+      // Token is valid, call backend to revoke
+      this.authApi.logout(scope, refreshToken).subscribe({
         error: (error) => console.error('Logout API error:', error),
       });
     }
+    // If token is expired, skip backend call (token already invalid)
+    // Always clear local state regardless
+    this.logoutLocal();
+  }
 
+  /**
+   * Clear local auth state without calling backend
+   * Private helper method
+   */
+  private logoutLocal(): void {
     this.clearAuthState();
   }
 
@@ -207,7 +220,7 @@ export class Auth {
     const idleTimeout = tokenDurationMs * this.config.idleLogoutTime;
 
     this.idleTimer = globalThis.setTimeout(() => {
-      this.logout();
+      this.logout(LogoutScope.CurrentSession);
       this.navigateToLogin({ reason: 'idle' });
     }, idleTimeout);
   }
@@ -247,7 +260,7 @@ export class Auth {
       this.refreshToken().subscribe({
         error: (err) => {
           console.error('Auto-refresh failed:', err);
-          this.logout();
+          this.logout(LogoutScope.CurrentSession);
           this.navigateToLogin();
         }
       });
@@ -258,7 +271,7 @@ export class Auth {
       this.refreshToken().subscribe({
         error: (err) => {
           console.error('Auto-refresh failed:', err);
-          this.logout();
+          this.logout(LogoutScope.CurrentSession);
           this.navigateToLogin();
         }
       });

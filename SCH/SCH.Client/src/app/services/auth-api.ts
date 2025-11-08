@@ -10,6 +10,7 @@ import { RefreshTokenRequest } from '../interfaces/refresh-token-request';
 import { RegisterRequest } from '../interfaces/register-request';
 import { SessionInfo } from '../interfaces/session-info';
 import { User } from '../interfaces/user';
+import { LogoutScope } from '../enums/logout-scope';
 
 @Injectable({
   providedIn: 'root'
@@ -47,10 +48,19 @@ export class AuthApi {
   }
 
   /**
-   * Logout (revokes all refresh tokens)
+   * Logout with specified scope
+   * @param scope - Logout scope (CurrentSession, CurrentBrowser, AllDevices)
+   * @param refreshToken - Optional refresh token to send with request
    */
-  public logout(): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/logout`, {});
+  public logout(
+    scope: LogoutScope = LogoutScope.CurrentBrowser,
+    refreshToken?: string
+  ): Observable<{ message: string }> {
+    const body = refreshToken ? { refreshToken } : {};
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/auth/logout?scope=${scope}`,
+      body
+    );
   }
 
   /**

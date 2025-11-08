@@ -1,6 +1,7 @@
 namespace SCH.Services.Auth
 {
     using SCH.Models.Auth.ClientDtos;
+    using SCH.Models.Auth.Enums;
 
     /// <summary>
     /// Service for authentication and authorization operations
@@ -33,11 +34,13 @@ namespace SCH.Services.Auth
         Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request, string? ipAddress, string? userAgent);
 
         /// <summary>
-        /// Logs out a user and revokes their refresh tokens
+        /// Logs out a user and revokes their refresh tokens based on scope
         /// </summary>
         /// <param name="userId">User ID</param>
+        /// <param name="currentRefreshToken">Current refresh token (optional)</param>
+        /// <param name="scope">Logout scope - determines which tokens to revoke</param>
         /// <returns>Task</returns>
-        Task LogoutAsync(int userId);
+        Task LogoutAsync(int userId, string? currentRefreshToken = null, LogoutScope scope = LogoutScope.CurrentSession);
 
         /// <summary>
         /// Revokes a specific refresh token

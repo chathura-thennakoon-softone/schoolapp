@@ -372,24 +372,65 @@ namespace SCH.Services.Auth
         }
 
         /// <summary>
-        /// Logs out user and revokes all refresh tokens
+        /// Logs out user and revokes refresh tokens based on scope
         /// </summary>
-        public async Task LogoutAsync(int userId)
+        public async Task LogoutAsync(int userId, string? currentRefreshToken = null, LogoutScope scope = LogoutScope.CurrentSession)
         {
-            _logger.Info($"Logout for user: {userId}");
+            _logger.Info($"Logout for user: {userId}, scope: {scope}");
 
-            var tokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
+            List<RefreshToken> tokensToRevoke = new();
 
-            foreach (var token in tokens)
+            switch (scope)
             {
-                token.IsRevoked = true;
-                token.RevokedDate = DateTime.UtcNow;
+                case LogoutScope.CurrentSession:
+                    // Revoke only the current refresh token
+                    if (!string.IsNullOrEmpty(currentRefreshToken))
+                    {
+                        var token = await _refreshTokenRepository.GetByTokenAsync(currentRefreshToken);
+                        if (token != null && token.UserId == userId && !token.IsRevoked)
+                        {
+                            tokensToRevoke.Add(token);
+                        }
+                    }
+                    break;
+
+                case LogoutScope.CurrentBrowser:
+                    // Revoke all tokens in the same family
+                    if (!string.IsNullOrEmpty(currentRefreshToken))
+                    {
+                        var currentToken = await _refreshTokenRepository.GetByTokenAsync(currentRefreshToken);
+                        if (currentToken != null && currentToken.UserId == userId)
+                        {
+                            var familyTokens = await _refreshTokenRepository.GetNonRevokedTokensByFamilyIdAsync(currentToken.FamilyId);
+                            tokensToRevoke.AddRange(familyTokens);
+                        }
+                    }
+                    break;
+
+                case LogoutScope.AllDevices:
+                    // Revoke all user tokens (all devices)
+                    var allTokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
+                    tokensToRevoke.AddRange(allTokens);
+                    break;
             }
 
-            _refreshTokenRepository.UpdateRange(tokens);
-            await _identityUnitOfWork.SaveChangesAsync();
+            if (tokensToRevoke.Any())
+            {
+                foreach (var token in tokensToRevoke)
+                {
+                    token.IsRevoked = true;
+                    token.RevokedDate = DateTime.UtcNow;
+                }
 
-            _logger.Info($"User logged out: {userId}, {tokens.Count} tokens revoked");
+                _refreshTokenRepository.UpdateRange(tokensToRevoke);
+                await _identityUnitOfWork.SaveChangesAsync();
+
+                _logger.Info($"User logged out: {userId}, {tokensToRevoke.Count} tokens revoked (scope: {scope})");
+            }
+            else
+            {
+                _logger.Warn($"No tokens found to revoke for user: {userId} (scope: {scope})");
+            }
         }
 
         /// <summary>
