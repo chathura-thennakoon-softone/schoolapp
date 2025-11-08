@@ -40,7 +40,7 @@ namespace SCH.Services.Auth
         /// <param name="currentRefreshToken">Current refresh token (optional)</param>
         /// <param name="scope">Logout scope - determines which tokens to revoke</param>
         /// <returns>Task</returns>
-        Task LogoutAsync(int userId, string? currentRefreshToken = null, LogoutScope scope = LogoutScope.CurrentSession);
+        Task LogoutAsync(int userId, string? currentRefreshToken = null, LogoutScope scope = LogoutScope.CurrentBrowser);
 
         /// <summary>
         /// Revokes a specific refresh token

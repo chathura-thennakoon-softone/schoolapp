@@ -91,16 +91,20 @@ export class Auth {
       // Set refreshing state to true so guards can wait
       this.isRefreshingSignal.set(true);
       
+      // Defer the refresh call to avoid circular dependency during service construction
+      setTimeout(() => {
       this.refreshToken().subscribe({
         next: () => {
           // Success - handleAuthSuccess already updated the state
           this.isRefreshingSignal.set(false);
         },
-        error: () => {
+          error: (error) => {
           // Failed - refreshToken() already cleared auth state
+            console.error('Refresh token error:', error);
           this.isRefreshingSignal.set(false);
         }
       });
+      }, 0);
       return;
     }
 

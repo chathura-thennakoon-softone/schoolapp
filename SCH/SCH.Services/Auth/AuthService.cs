@@ -374,7 +374,7 @@ namespace SCH.Services.Auth
         /// <summary>
         /// Logs out user and revokes refresh tokens based on scope
         /// </summary>
-        public async Task LogoutAsync(int userId, string? currentRefreshToken = null, LogoutScope scope = LogoutScope.CurrentSession)
+        public async Task LogoutAsync(int userId, string? currentRefreshToken = null, LogoutScope scope = LogoutScope.CurrentBrowser)
         {
             _logger.Info($"Logout for user: {userId}, scope: {scope}");
 
