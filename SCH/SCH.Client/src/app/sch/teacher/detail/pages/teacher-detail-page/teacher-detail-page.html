@@ -1,11 +1,11 @@
 <div class="container">
-    @if (!teacherId) {
+    @if (!teacherId()) {
     <h2>Add Teacher</h2>
     } @else {
     <h2>Edit Teacher</h2>
     }
 
-    @if (!isTeacherLoading) {
+    @if (!isTeacherLoading()) {
     <form
         [formGroup]="teacherForm"
         (ngSubmit)="onSubmit()"
@@ -33,11 +33,11 @@
         <button
             type="submit"
             class="btn btn-primary"
-            [disabled]="isTeacherSaving"
+            [disabled]="isTeacherSaving()"
         >Save</button>
         <button
             (click)="onBack()"
-            [disabled]="isTeacherSaving"
+            [disabled]="isTeacherSaving()"
         >Back</button>
     </form>
     }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, input } from '@angular/core';
+import { Component, Inject, input, OnInit, signal } from '@angular/core';
 import { StudentCourseMap } from '../../../../sch/interfaces/student-course-map';
 import {
   AllCommunityModule,
@@ -25,7 +25,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   templateUrl: './student-course.html',
   styleUrl: './student-course.scss'
 })
-export class StudentCourse {
+export class StudentCourse implements OnInit {
   studentId = input.required<number>();
 
   protected readonly columnDefs: ColDef<
@@ -80,20 +80,19 @@ export class StudentCourse {
     },
   ];
 
-  protected rowData: StudentCourseMap[] = [];
-  private courses: Course[] = [];
-  protected notSelectedCourses: Course[] = [];
+  protected readonly rowData = signal<StudentCourseMap[]>([]);
+  private readonly courses = signal<Course[]>([]);
+  protected readonly notSelectedCourses = signal<Course[]>([]);
 
   protected selectedCourseId: string | null = null;
 
-  protected dataLoading = false;
-  protected gridDataLoading = false;
-  protected isDeleting = false;
-  protected isAdding = false;
-  protected isEditing = false;
+  protected readonly dataLoading = signal(false);
+  protected readonly gridDataLoading = signal(false);
+  protected readonly isDeleting = signal(false);
+  protected readonly isAdding = signal(false);
+  protected readonly isEditing = signal(false);
 
   constructor(
-    private readonly cdr: ChangeDetectorRef,
     private readonly studentApi: StudentApi,
     private readonly courseApi: CourseApi,
     @Inject(MatDialog) private readonly dialog: MatDialog,
@@ -105,30 +104,26 @@ export class StudentCourse {
   }
 
   private setData(): void {
-    this.dataLoading = true;
-    this.cdr.markForCheck();
+    this.dataLoading.set(true);
   const courses$ = this.courseApi.getCourses();
   const studentCourses$ = this.studentApi.getCourses(this.studentId());
 
     forkJoin([courses$, studentCourses$]).subscribe(
       ([courses, studentCourses]) => {
-        this.courses = courses;
-        this.rowData = studentCourses;
+        this.courses.set(courses);
+        this.rowData.set(studentCourses);
         this.setNotSelectedCourses();
-        this.dataLoading = false;
-        this.cdr.markForCheck();
+        this.dataLoading.set(false);
       }
     );
   }
 
   private resetGridData(): void {
-    this.gridDataLoading = true;
-    this.cdr.markForCheck();
+    this.gridDataLoading.set(true);
   this.studentApi.getCourses(this.studentId()).subscribe((courses) => {
-      this.rowData = courses;
+      this.rowData.set(courses);
       this.setNotSelectedCourses();
-      this.gridDataLoading = false;
-      this.cdr.markForCheck();
+      this.gridDataLoading.set(false);
     });
   }
 
@@ -153,8 +148,7 @@ export class StudentCourse {
         courseName: null,
       };
 
-      this.isAdding = true;
-      this.cdr.markForCheck();
+      this.isAdding.set(true);
       this.studentApi
         .insertCourse(this.studentId(), courseId, course)
         .subscribe(() => {
@@ -163,19 +157,18 @@ export class StudentCourse {
           this.notification.success('Course added successfully');
         })
         .add(() => {
-          this.isAdding = false;
-          this.cdr.markForCheck();
+          this.isAdding.set(false);
         });
     }
   }
 
   private setNotSelectedCourses(): void {
-    this.notSelectedCourses = this.courses.filter(
+    this.notSelectedCourses.set(this.courses().filter(
       (course) =>
-        !this.rowData.some(
+        !this.rowData().some(
           (studentCourse) => studentCourse.courseId === course.id
         )
-    );
+    ));
   }
 
   protected onRemoveAll(): void {
@@ -188,7 +181,7 @@ export class StudentCourse {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.onDeletes(this.rowData);
+        this.onDeletes(this.rowData());
       }
     });
   }
@@ -197,8 +190,7 @@ export class StudentCourse {
     const deleteRequests = courses.map((course) =>
       this.studentApi.deleteCourse(this.studentId(), course.courseId)
     );
-    this.isDeleting = true;
-    this.cdr.markForCheck();
+    this.isDeleting.set(true);
     concat(...deleteRequests)
       .subscribe({
         complete: () => {
@@ -210,8 +202,7 @@ export class StudentCourse {
         },
       })
       .add(() => {
-        this.isDeleting = false;
-        this.cdr.markForCheck();
+        this.isDeleting.set(false);
       });
   }
 }

@@ -71,7 +71,9 @@ export class SecureImageService {
    * Clear the cache and revoke all object URLs to free memory
    */
   clearCache(): void {
-    this.cache.forEach(url => URL.revokeObjectURL(url));
+    for (const url of this.cache.values()) {
+      URL.revokeObjectURL(url);
+    }
     this.cache.clear();
   }
 

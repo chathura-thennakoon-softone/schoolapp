@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Teacher } from '../../../../../sch/interfaces/teacher';
 import {
@@ -19,13 +19,13 @@ import { Notification } from '../../../../../services/notification';
   templateUrl: './teacher-detail-page.html',
   styleUrl: './teacher-detail-page.scss'
 })
-export class TeacherDetailPage {
-  protected teacherId = 0;
+export class TeacherDetailPage implements OnInit {
+  protected readonly teacherId = signal(0);
 
-  protected teacher: Teacher | null = null;
+  protected readonly teacher = signal<Teacher | null>(null);
 
-  protected isTeacherLoading = false;
-  protected isTeacherSaving = false;
+  protected readonly isTeacherLoading = signal(false);
+  protected readonly isTeacherSaving = signal(false);
 
   protected teacherForm: FormGroup;
 
@@ -33,7 +33,6 @@ export class TeacherDetailPage {
     private readonly _avRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly cdr: ChangeDetectorRef,
     private readonly teacherApi: TeacherApi,
     private readonly notification: Notification
   ) {
@@ -45,14 +44,14 @@ export class TeacherDetailPage {
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
-      this.teacherId = +params['id'] || 0;
+      this.teacherId.set(+params['id'] || 0);
 
       this.setTeacher();
     });
   }
 
   private reset(): void {
-    this.teacher = null;
+    this.teacher.set(null);
     this.teacherForm.reset({
       id: 0,
       name: '',
@@ -61,14 +60,14 @@ export class TeacherDetailPage {
 
   private setTeacher(): void {
     this.reset();
-    if (this.teacherId) {
-      this.isTeacherLoading = true;
+    if (this.teacherId()) {
+      this.isTeacherLoading.set(true);
       this.teacherApi
-        .getTeacher(this.teacherId)
+        .getTeacher(this.teacherId())
         .subscribe({
           next: (teacher) => {
             if (teacher) {
-              this.teacher = teacher;
+              this.teacher.set(teacher);
 
               this.setFormData();
             } else {
@@ -82,8 +81,7 @@ export class TeacherDetailPage {
           },
         })
         .add(() => {
-          this.isTeacherLoading = false;
-          this.cdr.markForCheck();
+          this.isTeacherLoading.set(false);
         });
     } else {
       this.setFormData();
@@ -91,10 +89,11 @@ export class TeacherDetailPage {
   }
 
   private setFormData(): void {
-    if (this.teacher) {
+    const teacher = this.teacher();
+    if (teacher) {
       this.teacherForm.setValue({
-        id: this.teacher.id,
-        name: this.teacher.name,
+        id: teacher.id,
+        name: teacher.name,
       });
     }
   }
@@ -118,7 +117,7 @@ export class TeacherDetailPage {
     };
 
     if (teacher.id > 0) {
-      this.isTeacherSaving = true;
+      this.isTeacherSaving.set(true);
       this.teacherApi
         .updateTeacher(teacher)
         .subscribe({
@@ -131,10 +130,10 @@ export class TeacherDetailPage {
           },
         })
         .add(() => {
-          this.isTeacherSaving = false;
+          this.isTeacherSaving.set(false);
         });
     } else {
-      this.isTeacherSaving = true;
+      this.isTeacherSaving.set(true);
       this.teacherApi
         .insertTeacher(teacher)
         .subscribe({
@@ -147,7 +146,7 @@ export class TeacherDetailPage {
           },
         })
         .add(() => {
-          this.isTeacherSaving = false;
+          this.isTeacherSaving.set(false);
         });
     }
   }
@@ -157,14 +156,14 @@ export class TeacherDetailPage {
   }
 
   private validateAllFormFields(formGroup: FormGroup) {
-    Object.keys(formGroup.controls).forEach((field) => {
+    for (const field of Object.keys(formGroup.controls)) {
       const control = formGroup.get(field);
       if (control instanceof FormControl) {
         control.markAsTouched({ onlySelf: true });
       } else if (control instanceof FormGroup) {
         this.validateAllFormFields(control);
       }
-    });
+    }
   }
 
   protected get formControls() {

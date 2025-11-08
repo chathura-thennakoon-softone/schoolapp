@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -55,14 +55,13 @@ export class TeacherListPage {
       },
     ];
 
-  protected rowData: Teacher[] = [];
+  protected readonly rowData = signal<Teacher[]>([]);
 
-  protected gridDataLoading = false;
-  public isDeleting = false;
+  protected readonly gridDataLoading = signal(false);
+  protected readonly isDeleting = signal(false);
 
 
   constructor(
-    private readonly cdr: ChangeDetectorRef,
     private readonly router: Router,
     private readonly _avRoute: ActivatedRoute,
     private readonly teacherApi: TeacherApi,
@@ -76,21 +75,20 @@ export class TeacherListPage {
   }
 
   private setGridData() {
-    this.gridDataLoading = true;
+    this.gridDataLoading.set(true);
 
     this.teacherApi
       .getTeachers()
       .subscribe((data) => {
         if (data?.length) {
 
-          this.rowData = data;
+          this.rowData.set(data);
         } else {
-          this.rowData = [];
+          this.rowData.set([]);
         }
-        this.cdr.markForCheck();
       })
       .add(() => {
-        this.gridDataLoading = false;
+        this.gridDataLoading.set(false);
       });
   }
 
@@ -121,36 +119,32 @@ export class TeacherListPage {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.onDeletes(this.rowData);
+        this.onDeletes(this.rowData());
       }
     });
   }
 
   private onDeletes(teachers: Teacher[]): void {
-    this.isDeleting = true;
+    this.isDeleting.set(true);
 
     const teachersDeleteCalls: Observable<void>[] = [];
 
-    teachers.forEach(
-      (teacher) => {
-        const teachersDeleteCall = this.teacherApi.deleteTeacher(teacher.id);
-        teachersDeleteCalls.push(teachersDeleteCall);
-      }
-    );
+    for (const teacher of teachers) {
+      const teachersDeleteCall = this.teacherApi.deleteTeacher(teacher.id);
+      teachersDeleteCalls.push(teachersDeleteCall);
+    }
 
     concat(...teachersDeleteCalls).subscribe({
       complete: () => {
         this.setGridData();
         this.notification.success('Teacher deleted successfully');
-        this.isDeleting = false;
+        this.isDeleting.set(false);
       },
       error: (err) => {
         this.notification.error('Failed to delete teacher');
-        this.isDeleting = false;
+        this.isDeleting.set(false);
       }
     });
-
-    this.cdr.markForCheck();
 
   }
 

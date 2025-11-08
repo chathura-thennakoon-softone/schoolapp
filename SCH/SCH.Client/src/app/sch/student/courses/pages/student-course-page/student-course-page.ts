@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentCourse } from '../../../selectors/student-course/student-course';
 
@@ -10,7 +10,7 @@ import { StudentCourse } from '../../../selectors/student-course/student-course'
   templateUrl: './student-course-page.html',
   styleUrl: './student-course-page.scss',
 })
-export class StudentCoursePage {
+export class StudentCoursePage implements OnInit {
   protected studentId = 0;
 
   constructor(

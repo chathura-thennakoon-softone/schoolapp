@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -55,14 +55,13 @@ export class CourseListPage {
       },
     ];
 
-  protected rowData: Course[] = [];
+  protected readonly rowData = signal<Course[]>([]);
 
-  protected gridDataLoading = false;
-  public isDeleting = false;
+  protected readonly gridDataLoading = signal(false);
+  protected readonly isDeleting = signal(false);
 
 
   constructor(
-    private readonly cdr: ChangeDetectorRef,
     private readonly router: Router,
     private readonly _avRoute: ActivatedRoute,
     private readonly courseApi: CourseApi,
@@ -76,21 +75,20 @@ export class CourseListPage {
   }
 
   private setGridData() {
-    this.gridDataLoading = true;
+    this.gridDataLoading.set(true);
 
     this.courseApi
       .getCourses()
       .subscribe((data) => {
         if (data?.length) {
 
-          this.rowData = data;
+          this.rowData.set(data);
         } else {
-          this.rowData = [];
+          this.rowData.set([]);
         }
-        this.cdr.markForCheck();
       })
       .add(() => {
-        this.gridDataLoading = false;
+        this.gridDataLoading.set(false);
       });
   }
 
@@ -121,36 +119,32 @@ export class CourseListPage {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.onDeletes(this.rowData);
+        this.onDeletes(this.rowData());
       }
     });
   }
 
   private onDeletes(courses: Course[]): void {
-    this.isDeleting = true;
+    this.isDeleting.set(true);
 
     const coursesDeleteCalls: Observable<void>[] = [];
 
-    courses.forEach(
-      (course) => {
-        const coursesDeleteCall = this.courseApi.deleteCourse(course.id);
-        coursesDeleteCalls.push(coursesDeleteCall);
-      }
-    );
+    for (const course of courses) {
+      const coursesDeleteCall = this.courseApi.deleteCourse(course.id);
+      coursesDeleteCalls.push(coursesDeleteCall);
+    }
 
     concat(...coursesDeleteCalls).subscribe({
       complete: () => {
         this.setGridData();
         this.notification.success('Course deleted successfully');
-        this.isDeleting = false;
+        this.isDeleting.set(false);
       },
       error: (err) => {
         this.notification.error('Failed to delete course');
-        this.isDeleting = false;
+        this.isDeleting.set(false);
       }
     });
-
-    this.cdr.markForCheck();
 
   }
 

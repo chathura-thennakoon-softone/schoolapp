@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Course } from '../../../../../sch/interfaces/course';
 import {
@@ -19,13 +19,13 @@ import { Notification } from '../../../../../services/notification';
   templateUrl: './course-detail-page.html',
   styleUrl: './course-detail-page.scss'
 })
-export class CourseDetailPage {
-  protected courseId = 0;
+export class CourseDetailPage implements OnInit {
+  protected readonly courseId = signal(0);
 
-  protected course: Course | null = null;
+  protected readonly course = signal<Course | null>(null);
 
-  protected isCourseLoading = false;
-  protected isCourseSaving = false;
+  protected readonly isCourseLoading = signal(false);
+  protected readonly isCourseSaving = signal(false);
 
   protected courseForm: FormGroup;
 
@@ -33,7 +33,6 @@ export class CourseDetailPage {
     private readonly _avRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly cdr: ChangeDetectorRef,
     private readonly courseApi: CourseApi,
     private readonly notification: Notification
   ) {
@@ -45,14 +44,14 @@ export class CourseDetailPage {
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
-      this.courseId = +params['id'] || 0;
+      this.courseId.set(+params['id'] || 0);
 
       this.setCourse();
     });
   }
 
   private reset(): void {
-    this.course = null;
+    this.course.set(null);
     this.courseForm.reset({
       id: 0,
       name: '',
@@ -61,14 +60,14 @@ export class CourseDetailPage {
 
   private setCourse(): void {
     this.reset();
-    if (this.courseId) {
-      this.isCourseLoading = true;
+    if (this.courseId()) {
+      this.isCourseLoading.set(true);
       this.courseApi
-        .getCourse(this.courseId)
+        .getCourse(this.courseId())
         .subscribe({
           next: (course) => {
             if (course) {
-              this.course = course;
+              this.course.set(course);
 
               this.setFormData();
             } else {
@@ -82,8 +81,7 @@ export class CourseDetailPage {
           },
         })
         .add(() => {
-          this.isCourseLoading = false;
-          this.cdr.markForCheck();
+          this.isCourseLoading.set(false);
         });
     } else {
       this.setFormData();
@@ -91,10 +89,11 @@ export class CourseDetailPage {
   }
 
   private setFormData(): void {
-    if (this.course) {
+    const course = this.course();
+    if (course) {
       this.courseForm.setValue({
-        id: this.course.id,
-        name: this.course.name,
+        id: course.id,
+        name: course.name,
       });
     }
   }
@@ -118,7 +117,7 @@ export class CourseDetailPage {
     };
 
     if (course.id > 0) {
-      this.isCourseSaving = true;
+      this.isCourseSaving.set(true);
       this.courseApi
         .updateCourse(course)
         .subscribe({
@@ -131,10 +130,10 @@ export class CourseDetailPage {
           },
         })
         .add(() => {
-          this.isCourseSaving = false;
+          this.isCourseSaving.set(false);
         });
     } else {
-      this.isCourseSaving = true;
+      this.isCourseSaving.set(true);
       this.courseApi
         .insertCourse(course)
         .subscribe({
@@ -147,7 +146,7 @@ export class CourseDetailPage {
           },
         })
         .add(() => {
-          this.isCourseSaving = false;
+          this.isCourseSaving.set(false);
         });
     }
   }
@@ -157,14 +156,14 @@ export class CourseDetailPage {
   }
 
   private validateAllFormFields(formGroup: FormGroup) {
-    Object.keys(formGroup.controls).forEach((field) => {
+    for (const field of Object.keys(formGroup.controls)) {
       const control = formGroup.get(field);
       if (control instanceof FormControl) {
         control.markAsTouched({ onlySelf: true });
       } else if (control instanceof FormGroup) {
         this.validateAllFormFields(control);
       }
-    });
+    }
   }
 
   protected get formControls() {
