@@ -37,10 +37,12 @@ export class Auth {
   // Signals for reactive state management
   private readonly currentUserSignal = signal<User | null>(null);
   private readonly isAuthenticatedSignal = signal<boolean>(false);
+  private readonly isRefreshingSignal = signal<boolean>(false);
 
   // Computed signals
   public readonly currentUser = computed(() => this.currentUserSignal());
   public readonly isAuthenticated = computed(() => this.isAuthenticatedSignal());
+  public readonly isRefreshing = computed(() => this.isRefreshingSignal());
   public readonly isAdmin = computed(() =>
     this.currentUser()?.roles.includes('Admin') ?? false
   );
@@ -54,6 +56,7 @@ export class Auth {
 
   /**
    * Initialize authentication state from localStorage
+   * Note: Does not handle navigation - auth guard will redirect if needed
    */
   private initializeAuthState(): void {
     const token = this.getAccessToken();
@@ -73,7 +76,6 @@ export class Auth {
       // If RememberMe is OFF, logout immediately (don't use refresh token)
       if (!rememberMe) {
         this.logout();
-        this.router.navigate(['/login']);
         return;
       }
 
@@ -81,15 +83,22 @@ export class Auth {
       if (!refreshTokenExpiry || now >= refreshTokenExpiry) {
         // Refresh token also expired, logout
         this.logout();
-        this.router.navigate(['/login']);
         return;
       }
 
       // Refresh token is still valid, try to refresh
+      // Set refreshing state to true so guards can wait
+      this.isRefreshingSignal.set(true);
+      
       this.refreshToken().subscribe({
+        next: () => {
+          // Success - handleAuthSuccess already updated the state
+          this.isRefreshingSignal.set(false);
+        },
         error: () => {
+          // Failed - logout and let guard handle redirect
+          this.isRefreshingSignal.set(false);
           this.logout();
-          this.router.navigate(['/login']);
         }
       });
       return;
@@ -199,7 +208,7 @@ export class Auth {
 
     this.idleTimer = globalThis.setTimeout(() => {
       this.logout();
-      this.router.navigate(['/login'], { queryParams: { reason: 'idle' } });
+      this.navigateToLogin({ reason: 'idle' });
     }, idleTimeout);
   }
 
@@ -239,7 +248,7 @@ export class Auth {
         error: (err) => {
           console.error('Auto-refresh failed:', err);
           this.logout();
-          this.router.navigate(['/login']);
+          this.navigateToLogin();
         }
       });
       return;
@@ -250,7 +259,7 @@ export class Auth {
         error: (err) => {
           console.error('Auto-refresh failed:', err);
           this.logout();
-          this.router.navigate(['/login']);
+          this.navigateToLogin();
         }
       });
     }, timeUntilRefresh);
@@ -263,6 +272,20 @@ export class Auth {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     if (this.refreshTimer) clearTimeout(this.refreshTimer);
     this.activityChannel?.close();
+  }
+
+  /**
+   * Navigate to login with current URL as returnUrl
+   * Common method for logout scenarios
+   */
+  private navigateToLogin(queryParams?: Record<string, string>): void {
+    const currentUrl = this.router.url;
+    this.router.navigate(['/login'], {
+      queryParams: {
+        returnUrl: currentUrl,
+        ...queryParams
+      }
+    });
   }
 
   /**
@@ -299,6 +322,7 @@ export class Auth {
 
   /**
    * Refresh access token
+   * Note: Does not handle navigation - caller should navigate as needed
    */
   public refreshToken(): Observable<AuthResponse> {
     const accessToken = this.getAccessToken();
@@ -314,7 +338,6 @@ export class Auth {
     // Check if refresh token is expired before calling backend
     if (refreshTokenExpiry && Date.now() >= refreshTokenExpiry) {
       this.clearAuthState();
-      this.router.navigate(['/login']);
       return throwError(() => new Error('Refresh token expired'));
     }
 
@@ -322,7 +345,6 @@ export class Auth {
       tap((response) => this.handleAuthSuccess(response, rememberMe ?? false)),
       catchError((error) => {
         this.clearAuthState();
-        this.router.navigate(['/login']);
         return throwError(() => error);
       })
     );

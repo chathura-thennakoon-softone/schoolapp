@@ -12,10 +12,11 @@ import { filter, take, switchMap } from 'rxjs/operators';
 import { toObservable } from '@angular/core/rxjs-interop';
 
 /**
- * Auth guard to protect routes that require authentication
+ * Role-based auth guard
+ * Usage: canActivate: [roleGuard], data: { roles: ['Admin', 'Basic'] }
  * Waits for token refresh to complete if in progress
  */
-export const authGuard: CanActivateFn = (
+export const roleGuard: CanActivateFn = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot
 ): Observable<boolean | UrlTree> => {
@@ -31,17 +32,26 @@ export const authGuard: CanActivateFn = (
     filter(isRefreshing => !isRefreshing),
     // Take only the first emission (when refresh completes)
     take(1),
-    // Then check authentication status
+    // Then check authentication and role
     switchMap(() => {
-      if (authService.isAuthenticated()) {
-        return of(true);
-      } else {
+      if (!authService.isAuthenticated()) {
         return of(router.createUrlTree(['/login'], {
           queryParams: { returnUrl: state.url },
         }));
       }
+
+      const requiredRoles = route.data['roles'] as string[];
+
+      if (!requiredRoles || requiredRoles.length === 0) {
+        return of(true);
+      }
+
+      if (authService.hasAnyRole(requiredRoles)) {
+        return of(true);
+      }
+
+      return of(router.createUrlTree(['/unauthorized']));
     })
   );
 };
-
 

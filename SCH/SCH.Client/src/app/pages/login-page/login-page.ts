@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -38,11 +38,14 @@ export class LoginPage {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly notificationService = inject(Notification);
 
   public loginForm: FormGroup;
   public isLoading = signal(false);
   public hidePassword = signal(true);
+  
+  private returnUrl: string = '/sch/dashboard';
 
   constructor() {
     this.loginForm = this.formBuilder.nonNullable.group({
@@ -50,6 +53,46 @@ export class LoginPage {
       password: ['', [Validators.required]],
       rememberMe: [false],
     });
+
+    // Get returnUrl from query params with validation
+    this.route.queryParams.subscribe(params => {
+      this.returnUrl = this.sanitizeReturnUrl(params['returnUrl']);
+    });
+  }
+
+  /**
+   * Sanitize and validate returnUrl to prevent security issues
+   */
+  private sanitizeReturnUrl(url: string | null | undefined): string {
+    const defaultUrl = '/sch/dashboard';
+    
+    // If no URL provided, use default
+    if (!url) {
+      return defaultUrl;
+    }
+
+    // Trim whitespace
+    url = url.trim();
+
+    // Must start with / (internal URL only, prevent open redirect)
+    if (!url.startsWith('/')) {
+      return defaultUrl;
+    }
+
+    // Prevent redirecting back to auth pages
+    const authPages = ['/login', '/register'];
+    if (authPages.some(page => url === page || url.startsWith(page + '/'))) {
+      return defaultUrl;
+    }
+
+    // Prevent redirecting to error pages
+    const errorPages = ['/notfound', '/unauthorized', '/servererror'];
+    if (errorPages.some(page => url === page || url.startsWith(page + '/'))) {
+      return defaultUrl;
+    }
+
+    // Valid internal URL
+    return url;
   }
 
   /**
@@ -103,8 +146,8 @@ export class LoginPage {
             `Welcome back, ${response.user.firstName}!`
           );
 
-          // Navigate to dashboard
-          this.router.navigate(['/sch/dashboard']);
+          // Navigate to returnUrl or default dashboard
+          this.router.navigateByUrl(this.returnUrl);
         },
         error: (error) => {
           this.isLoading.set(false);
