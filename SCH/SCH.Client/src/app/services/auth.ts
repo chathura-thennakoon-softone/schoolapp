@@ -219,7 +219,7 @@ export class Auth {
     const idleTimeout = tokenDurationMs * this.config.idleLogoutTime;
 
     this.idleTimer = globalThis.setTimeout(() => {
-      this.logout(LogoutScope.CurrentSession);
+      this.logout(LogoutScope.CurrentBrowser);
       this.navigateToLogin({ reason: 'idle' });
     }, idleTimeout);
   }
@@ -259,7 +259,6 @@ export class Auth {
       this.refreshToken().subscribe({
         error: (err) => {
           console.error('Auto-refresh failed:', err);
-          this.logout(LogoutScope.CurrentSession);
           this.navigateToLogin();
         }
       });
@@ -270,7 +269,6 @@ export class Auth {
       this.refreshToken().subscribe({
         error: (err) => {
           console.error('Auto-refresh failed:', err);
-          this.logout(LogoutScope.CurrentSession);
           this.navigateToLogin();
         }
       });
@@ -356,7 +354,8 @@ export class Auth {
     return this.authApi.refreshToken({ accessToken, refreshToken }).pipe(
       tap((response) => this.handleAuthSuccess(response, rememberMe ?? false)),
       catchError((error) => {
-        this.clearAuthState();
+        // Use logout to properly revoke tokens on backend before clearing state
+        this.logout(LogoutScope.CurrentBrowser);
         return throwError(() => error);
       })
     );
