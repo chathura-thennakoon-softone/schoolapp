@@ -97,9 +97,8 @@ export class Auth {
           this.isRefreshingSignal.set(false);
         },
         error: () => {
-          // Failed - logout and let guard handle redirect
+          // Failed - refreshToken() already cleared auth state
           this.isRefreshingSignal.set(false);
-          this.logoutLocal();  // Refresh failed, just clear local state
         }
       });
       return;
