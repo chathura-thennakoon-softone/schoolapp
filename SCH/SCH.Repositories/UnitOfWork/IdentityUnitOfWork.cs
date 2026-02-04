@@ -6,25 +6,21 @@ namespace SCH.Repositories.UnitOfWork
     using SCH.Shared.HttpContext;
 
     /// <summary>
-    /// Unit of Work implementation for Identity context transactions
+    /// Unit of Work implementation for Identity context (identity schema)
+    /// Handles audit tracking for identity entities using IIdentityAuditableEntity
     /// </summary>
-    internal class IdentityUnitOfWork : IIdentityUnitOfWork
+    internal class IdentityUnitOfWork : BaseUnitOfWork<IdentityContext>, IIdentityUnitOfWork
     {
-        private readonly IdentityContext _context;
-        private readonly IUserInfo? _userInfo;
-
         public IdentityUnitOfWork(IdentityContext context, IUserInfo? userInfo = null)
+            : base(context, userInfo)
         {
-            _context = context;
-            _userInfo = userInfo;
         }
 
-        public async Task SaveChangesAsync()
+        protected override void ApplyAuditTracking()
         {
-            // Apply audit tracking before saving
-            var currentUserId = _userInfo?.GetCurrentUserId();
+            var currentUserId = UserInfo?.GetCurrentUserId();
             var timestamp = DateTime.UtcNow; // Single timestamp for all entities in this transaction
-            var entries = _context.ChangeTracker.Entries<IIdentityAuditableEntity>();
+            var entries = Context.ChangeTracker.Entries<IIdentityAuditableEntity>();
 
             foreach (var entry in entries)
             {
@@ -48,8 +44,6 @@ namespace SCH.Repositories.UnitOfWork
                     }
                 }
             }
-
-            await _context.SaveChangesAsync();
         }
     }
 }

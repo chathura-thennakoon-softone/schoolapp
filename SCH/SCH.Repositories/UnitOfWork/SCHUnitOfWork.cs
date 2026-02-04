@@ -5,23 +5,22 @@ namespace SCH.Repositories.UnitOfWork
     using SCH.Repositories.DbContexts;
     using SCH.Shared.HttpContext;
 
-    internal class SCHUnitOfWork : ISCHUnitOfWork
+    /// <summary>
+    /// Unit of Work implementation for SCH context (dbo schema)
+    /// Handles audit tracking for domain entities using IAuditableEntity
+    /// </summary>
+    internal class SCHUnitOfWork : BaseUnitOfWork<SCHContext>, ISCHUnitOfWork
     {
-        private readonly SCHContext _context;
-        private readonly IUserInfo? _userInfo;
-
         public SCHUnitOfWork(SCHContext context, IUserInfo? userInfo = null)
+            : base(context, userInfo)
         {
-            _context = context;
-            _userInfo = userInfo;
         }
 
-        public async Task SaveChangesAsync()
+        protected override void ApplyAuditTracking()
         {
-            // Apply audit tracking before saving
-            var currentUserId = _userInfo?.GetCurrentUserId();
+            var currentUserId = UserInfo?.GetCurrentUserId();
             var timestamp = DateTime.UtcNow; // Single timestamp for all entities in this transaction
-            var entries = _context.ChangeTracker.Entries<IAuditableEntity>();
+            var entries = Context.ChangeTracker.Entries<IAuditableEntity>();
 
             foreach (var entry in entries)
             {
@@ -47,8 +46,6 @@ namespace SCH.Repositories.UnitOfWork
                     }
                 }
             }
-
-            await _context.SaveChangesAsync();
         }
     }
 }
