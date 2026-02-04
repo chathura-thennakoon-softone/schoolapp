@@ -215,17 +215,38 @@ namespace SCH.Services.Auth
             await _userManager.AddToRoleAsync(user, "Basic");
 
             // Create corresponding domain user
-            var domainUser = new User
+            // Wrap in try-catch to rollback ApplicationUser if domain user creation fails
+            try
             {
-                Id = user.Id,  // Use ApplicationUser.Id as primary key
-                FirstName = request.FirstName,
-                LastName = request.LastName
-            };
+                var domainUser = new User
+                {
+                    Id = user.Id,  // Use ApplicationUser.Id as primary key
+                    FirstName = request.FirstName,
+                    LastName = request.LastName
+                };
 
-            await _userRepository.InsertAsync(domainUser);
-            await _schUnitOfWork.SaveChangesAsync();
+                await _userRepository.InsertAsync(domainUser);
+                await _schUnitOfWork.SaveChangesAsync();
 
-            _logger.Info($"User registered successfully: {user.UserName} (Identity ID: {user.Id}, Domain ID: {domainUser.Id})");
+                _logger.Info($"User registered successfully: {user.UserName} (Identity ID: {user.Id}, Domain ID: {domainUser.Id})");
+            }
+            catch (Exception ex)
+            {
+                // Rollback: Delete the ApplicationUser that was just created
+                _logger.Error($"Failed to create domain user for {user.UserName}. Rolling back ApplicationUser creation.", ex);
+                
+                try
+                {
+                    await _userManager.DeleteAsync(user);
+                    _logger.Warn($"Successfully rolled back ApplicationUser creation for {user.UserName}");
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.Error($"Critical: Failed to rollback ApplicationUser {user.UserName}. Manual cleanup required.", rollbackEx);
+                }
+
+                throw SCHApplicationException.InternalServerError($"Registration failed");
+            }
 
             // Auto-login after registration
             return await LoginAsync(new LoginRequestDto
