@@ -6,14 +6,9 @@ namespace SCH.Models.Users.ClientDtos
     public class UserDomainDto
     {
         /// <summary>
-        /// Domain user ID
+        /// User ID (same as AspNetUsers.Id)
         /// </summary>
         public int Id { get; set; }
-
-        /// <summary>
-        /// Reference to Identity user ID
-        /// </summary>
-        public int AspNetUserId { get; set; }
 
         /// <summary>
         /// First name

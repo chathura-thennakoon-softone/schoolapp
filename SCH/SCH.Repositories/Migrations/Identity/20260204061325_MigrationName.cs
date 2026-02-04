@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SCH.Repositories.Migrations.Identity
 {
     /// <inheritdoc />
-    public partial class InitialIdentity : Migration
+    public partial class MigrationName : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -45,6 +45,9 @@ namespace SCH.Repositories.Migrations.Identity
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastLoginDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<int>(type: "int", nullable: true),
+                    ModifiedBy = table.Column<int>(type: "int", nullable: true),
+                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -63,6 +66,18 @@ namespace SCH.Repositories.Migrations.Identity
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_AspNetUsers_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalSchema: "identity",
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_AspNetUsers_ModifiedBy",
+                        column: x => x.ModifiedBy,
+                        principalSchema: "identity",
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -260,6 +275,18 @@ namespace SCH.Repositories.Migrations.Identity
                 schema: "identity",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_CreatedBy",
+                schema: "identity",
+                table: "AspNetUsers",
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_ModifiedBy",
+                schema: "identity",
+                table: "AspNetUsers",
+                column: "ModifiedBy");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",

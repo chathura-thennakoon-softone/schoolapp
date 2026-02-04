@@ -1,11 +1,12 @@
 namespace SCH.Models.Auth.Entities
 {
     using Microsoft.AspNetCore.Identity;
+    using SCH.Models.Common.AuditableEntities;
 
     /// <summary>
     /// Represents an application user with custom properties
     /// </summary>
-    public class ApplicationUser : IdentityUser<int>
+    public class ApplicationUser : IdentityUser<int>, IIdentityAuditableEntity
     {
         /// <summary>
         /// User's first name
@@ -23,7 +24,7 @@ namespace SCH.Models.Auth.Entities
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Date when the user was created
+        /// Date when the user was created (UTC)
         /// </summary>
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
@@ -41,6 +42,22 @@ namespace SCH.Models.Auth.Entities
         /// Gets the user's full name
         /// </summary>
         public string FullName => $"{FirstName} {LastName}".Trim();
+
+        // Audit properties
+        /// <summary>
+        /// User ID who created this user (self-referencing FK to AspNetUsers.Id)
+        /// </summary>
+        public int? CreatedBy { get; set; }
+
+        /// <summary>
+        /// User ID who last modified this user (self-referencing FK to AspNetUsers.Id)
+        /// </summary>
+        public int? ModifiedBy { get; set; }
+
+        /// <summary>
+        /// Date and time when this user was last modified (UTC)
+        /// </summary>
+        public DateTime? ModifiedDate { get; set; }
     }
 }
 

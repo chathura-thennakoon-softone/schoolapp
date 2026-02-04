@@ -5,6 +5,9 @@
     [IsActive]             BIT                NOT NULL,
     [CreatedDate]          DATETIME2 (7)      NOT NULL,
     [LastLoginDate]        DATETIME2 (7)      NULL,
+    [CreatedBy]            INT                NULL,
+    [ModifiedBy]           INT                NULL,
+    [ModifiedDate]         DATETIME2 (7)      NULL,
     [UserName]             NVARCHAR (256)     NULL,
     [NormalizedUserName]   NVARCHAR (256)     NULL,
     [Email]                NVARCHAR (256)     NULL,
@@ -19,8 +22,12 @@
     [LockoutEnd]           DATETIMEOFFSET (7) NULL,
     [LockoutEnabled]       BIT                NOT NULL,
     [AccessFailedCount]    INT                NOT NULL,
-    CONSTRAINT [PK_AspNetUsers] PRIMARY KEY CLUSTERED ([Id] ASC)
+    CONSTRAINT [PK_AspNetUsers] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_AspNetUsers_AspNetUsers_CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [identity].[AspNetUsers] ([Id]),
+    CONSTRAINT [FK_AspNetUsers_AspNetUsers_ModifiedBy] FOREIGN KEY ([ModifiedBy]) REFERENCES [identity].[AspNetUsers] ([Id])
 );
+
+
 
 
 GO
@@ -31,4 +38,14 @@ CREATE UNIQUE NONCLUSTERED INDEX [UserNameIndex]
 GO
 CREATE NONCLUSTERED INDEX [EmailIndex]
     ON [identity].[AspNetUsers]([NormalizedEmail] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_AspNetUsers_ModifiedBy]
+    ON [identity].[AspNetUsers]([ModifiedBy] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_AspNetUsers_CreatedBy]
+    ON [identity].[AspNetUsers]([CreatedBy] ASC);
 

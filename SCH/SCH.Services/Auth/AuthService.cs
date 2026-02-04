@@ -217,7 +217,7 @@ namespace SCH.Services.Auth
             // Create corresponding domain user
             var domainUser = new User
             {
-                AspNetUserId = user.Id,
+                Id = user.Id,  // Use ApplicationUser.Id as primary key
                 FirstName = request.FirstName,
                 LastName = request.LastName
             };

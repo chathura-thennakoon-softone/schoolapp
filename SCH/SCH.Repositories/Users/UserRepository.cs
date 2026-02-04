@@ -16,12 +16,6 @@ namespace SCH.Repositories.Users
             _context = context;
         }
 
-        public async Task<User?> GetByAspNetUserIdAsync(int aspNetUserId)
-        {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.AspNetUserId == aspNetUserId);
-        }
-
         public async Task<User?> GetByIdAsync(int id)
         {
             return await _context.Users

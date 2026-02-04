@@ -1,4 +1,4 @@
-﻿namespace SCH.Repositories.DbContexts
+namespace SCH.Repositories.DbContexts
 {
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Courses.Entities;
@@ -40,8 +40,9 @@
                 entity.ToTable("User", "dbo");
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.AspNetUserId)
-                    .IsRequired();
+                // Id is manually set (not auto-generated) and references AspNetUsers.Id
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever();
 
                 entity.Property(e => e.FirstName)
                     .IsRequired()
@@ -51,10 +52,16 @@
                     .IsRequired()
                     .HasMaxLength(100);
 
-                // Create index on AspNetUserId for performance
-                entity.HasIndex(e => e.AspNetUserId)
-                    .IsUnique(); // One domain user per identity user
+                // Audit columns - User has nullable CreatedBy (self-reference)
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ModifiedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // Configure Student entity
@@ -68,6 +75,17 @@
                 entity.Property(e => e.SSN).HasColumnType("nvarchar(20)");
                 entity.Property(e => e.Image).HasColumnType("nvarchar(400)");
                 entity.Property(e => e.StartDate).HasColumnType("date");
+
+                // Audit foreign keys
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ModifiedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // Configure Course entity
@@ -75,6 +93,17 @@
             {
                 entity.ToTable("Course", "dbo");
                 entity.Property(e => e.Name).HasColumnType("nvarchar(400)");
+
+                // Audit foreign keys
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ModifiedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // Configure Teacher entity
@@ -82,6 +111,17 @@
             {
                 entity.ToTable("Teacher", "dbo");
                 entity.Property(e => e.Name).HasColumnType("nvarchar(400)");
+
+                // Audit foreign keys
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ModifiedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
 
@@ -99,6 +139,17 @@
                 entity.HasOne(sc => sc.Course)
                     .WithMany(c => c.StudentCourseMaps)
                     .HasForeignKey(sc => sc.CourseId);
+
+                // Audit foreign keys
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ModifiedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Post-Deployment Script - Seed Data							
 --------------------------------------------------------------------------------------
  This script seeds Identity (roles, admin user) and domain data (students).
@@ -56,8 +56,6 @@ BEGIN
     PRINT 'Basic role created';
 END
 
-GO
-
 -- =============================================
 -- SECTION 2: Seed Admin User
 -- =============================================
@@ -91,7 +89,10 @@ BEGIN
         [LastName],
         [IsActive],
         [CreatedDate],
-        [LastLoginDate]
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
     )
     VALUES
     (
@@ -113,7 +114,10 @@ BEGIN
         'Administrator',                                                            -- LastName
         1,                                                                          -- IsActive
         GETUTCDATE(),                                                               -- CreatedDate
-        NULL                                                                        -- LastLoginDate
+        NULL,                                                                       -- LastLoginDate
+        NULL,                                                                       -- CreatedBy (self-reference, first user)
+        NULL,                                                                       -- ModifiedBy
+        NULL                                                                        -- ModifiedDate
     );
     
     SET @AdminUserId = SCOPE_IDENTITY();
@@ -140,19 +144,27 @@ BEGIN
     END
     
     -- Create corresponding domain user record
-    IF NOT EXISTS (SELECT 1 FROM [dbo].[User] WHERE [AspNetUserId] = @AdminUserId)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[User] WHERE [Id] = @AdminUserId)
     BEGIN
         INSERT INTO [dbo].[User]
         (
-            [AspNetUserId],
+            [Id],
             [FirstName],
-            [LastName]
+            [LastName],
+            [CreatedBy],
+            [CreatedDate],
+            [ModifiedBy],
+            [ModifiedDate]
         )
         VALUES
         (
             @AdminUserId,
             'System',
-            'Administrator'
+            'Administrator',
+            NULL,           -- CreatedBy (self-reference, first user)
+            GETUTCDATE(),   -- CreatedDate
+            NULL,           -- ModifiedBy
+            NULL            -- ModifiedDate
         );
         
         PRINT 'Domain user record created for admin';
@@ -175,6 +187,9 @@ IF NOT EXISTS
     FROM [dbo].[Student]
 )
 BEGIN
+    -- Get admin user ID for CreatedBy field
+    DECLARE @AdminUserIdForStudents INT = (SELECT TOP 1 [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'admin');
+
     INSERT INTO [dbo].[Student]
     (
 	    [FirstName]
@@ -185,6 +200,10 @@ BEGIN
         ,[Image]
         ,[StartDate]
         ,[IsActive]
+        ,[CreatedBy]
+        ,[CreatedDate]
+        ,[ModifiedBy]
+        ,[ModifiedDate]
     )
     VALUES
     (
@@ -196,6 +215,10 @@ BEGIN
         ,'image1'
         ,'2024-11-11'
         ,1
+        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
+        ,GETUTCDATE()             -- CreatedDate
+        ,NULL                     -- ModifiedBy
+        ,NULL                     -- ModifiedDate
     ),
     (
 	    'FirstName2'
@@ -206,6 +229,10 @@ BEGIN
         ,'image2'
         ,'2024-11-12'
         ,1
+        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
+        ,GETUTCDATE()             -- CreatedDate
+        ,NULL                     -- ModifiedBy
+        ,NULL                     -- ModifiedDate
     ),
     (
 	    'FirstName3'
@@ -216,6 +243,10 @@ BEGIN
         ,'image3'
         ,'2024-11-13'
         ,1
+        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
+        ,GETUTCDATE()             -- CreatedDate
+        ,NULL                     -- ModifiedBy
+        ,NULL                     -- ModifiedDate
     ),
     (
 	    'FirstName4'
@@ -226,6 +257,10 @@ BEGIN
         ,'image4'
         ,'2024-11-14'
         ,1
+        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
+        ,GETUTCDATE()             -- CreatedDate
+        ,NULL                     -- ModifiedBy
+        ,NULL                     -- ModifiedDate
     ),
     (
 	    'FirstName5'
@@ -236,6 +271,10 @@ BEGIN
         ,'image5'
         ,'2024-11-15'
         ,0
+        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
+        ,GETUTCDATE()             -- CreatedDate
+        ,NULL                     -- ModifiedBy
+        ,NULL                     -- ModifiedDate
     ),
     (
 	    'FirstName6'
@@ -246,6 +285,10 @@ BEGIN
         ,'image6'
         ,'2024-11-16'
         ,1
+        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
+        ,GETUTCDATE()             -- CreatedDate
+        ,NULL                     -- ModifiedBy
+        ,NULL                     -- ModifiedDate
     )
 
 END

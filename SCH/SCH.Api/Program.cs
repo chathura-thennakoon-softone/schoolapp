@@ -11,6 +11,9 @@ const string allowOriginsPolicy = "AllowOrigins";
 builder.Services.AddAllowedOrigins(
     allowOriginsPolicy, builder.Configuration.GetSection("AllowedOrigins").Value);
 
+// Add HttpContext services (IHttpContextAccessor, IUserInfo, etc.)
+builder.Services.AddHttpContextServices();
+
 // Add services to the container.
 
 builder.Services.ConfigureControllersWithFilters(); // Includes ModelValidationFilter

@@ -30,6 +30,17 @@ namespace SCH.Repositories.DbContexts
                 entity.ToTable("AspNetUsers", "identity");
                 entity.Property(e => e.FirstName).HasMaxLength(100);
                 entity.Property(e => e.LastName).HasMaxLength(100);
+
+                // Audit foreign keys - self-referencing, nullable
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ModifiedBy)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // Configure ApplicationRole

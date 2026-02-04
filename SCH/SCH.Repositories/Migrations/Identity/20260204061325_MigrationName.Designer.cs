@@ -12,8 +12,8 @@ using SCH.Repositories.DbContexts;
 namespace SCH.Repositories.Migrations.Identity
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20251107173238_InitialIdentity")]
-    partial class InitialIdentity
+    [Migration("20260204061325_MigrationName")]
+    partial class MigrationName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -184,6 +184,9 @@ namespace SCH.Repositories.Migrations.Identity
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -216,6 +219,12 @@ namespace SCH.Repositories.Migrations.Identity
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -244,6 +253,10 @@ namespace SCH.Repositories.Migrations.Identity
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ModifiedBy");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -384,6 +397,19 @@ namespace SCH.Repositories.Migrations.Identity
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SCH.Models.Auth.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("SCH.Models.Auth.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SCH.Models.Auth.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ModifiedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("SCH.Models.Auth.Entities.RefreshToken", b =>

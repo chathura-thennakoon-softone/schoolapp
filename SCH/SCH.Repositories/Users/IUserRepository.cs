@@ -8,12 +8,7 @@ namespace SCH.Repositories.Users
     public interface IUserRepository : IRepository
     {
         /// <summary>
-        /// Gets a user by their AspNetUserId
-        /// </summary>
-        Task<User?> GetByAspNetUserIdAsync(int aspNetUserId);
-
-        /// <summary>
-        /// Gets a user by their domain user ID
+        /// Gets a user by their ID (same as AspNetUsers.Id)
         /// </summary>
         Task<User?> GetByIdAsync(int id);
 
