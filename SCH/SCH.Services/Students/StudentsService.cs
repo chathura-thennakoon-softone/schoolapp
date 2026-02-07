@@ -1,4 +1,4 @@
-﻿namespace SCH.Services.Students
+namespace SCH.Services.Students
 {
     using SCH.Models.Courses.Entities;
     using SCH.Models.StudentCourseMap.ClientDtos;
@@ -48,7 +48,8 @@
                     IsActive = s.IsActive,
                     PhoneNumber = s.PhoneNumber,
                     SSN = s.SSN,
-                    StartDate = s.StartDate   
+                    StartDate = s.StartDate,
+                    RowVersion = s.RowVersion
                 }).ToList();
 
             return studentDtos;
@@ -72,6 +73,7 @@
                     PhoneNumber = student.PhoneNumber,
                     SSN = student.SSN,
                     StartDate = student.StartDate,
+                    RowVersion = student.RowVersion,
                     Courses = student.StudentCourseMaps
                         .Select(scm => new StudentCourseMapDto
                         {
@@ -138,6 +140,9 @@
             studentEntity.SSN = student.SSN;
             studentEntity.StartDate = student.StartDate;
 
+            // Include RowVersion from frontend for concurrency check
+            studentEntity.RowVersion = student.RowVersion ?? studentEntity.RowVersion;
+
             List<StudentCourseMap> deletedMaps = studentEntity
                 .StudentCourseMaps
                 .Where(scm => !student
@@ -165,6 +170,8 @@
                 studentEntity.StudentCourseMaps.Add(sc);
             }
 
+            // Repository handles concurrency check
+            studentsRepository.UpdateAsync(studentEntity);
             await unitOfWork.SaveChangesAsync();
         }
 

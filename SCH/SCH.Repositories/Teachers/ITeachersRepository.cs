@@ -10,6 +10,11 @@ namespace SCH.Repositories.Teachers
 
         Task InsertTeacherAsync(Teacher teacher);
 
+        /// <summary>
+        /// Updates a teacher with optimistic concurrency check
+        /// </summary>
+        void UpdateAsync(Teacher teacher);
+
         Task DeleteTeacherAsync(int id);
     }
 }

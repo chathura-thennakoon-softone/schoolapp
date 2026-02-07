@@ -114,6 +114,7 @@ export class TeacherDetailPage implements OnInit {
     const teacher: Teacher = {
       id: this.teacherForm.value.id,
       name: this.teacherForm.value.name,
+      rowVersion: this.teacher()?.rowVersion, // Include rowVersion for concurrency check
     };
 
     if (teacher.id > 0) {
@@ -126,6 +127,7 @@ export class TeacherDetailPage implements OnInit {
             this.notification.success('Teacher updated successfully');
           },
           error: (error) => {
+            // Generic error message - specific errors handled by interceptor
             this.notification.error('Failed to update teacher');
           },
         })

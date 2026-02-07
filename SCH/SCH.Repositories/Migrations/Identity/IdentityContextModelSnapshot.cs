@@ -311,6 +311,12 @@ namespace SCH.Repositories.Migrations.Identity
                     b.Property<DateTime?>("RevokedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(255)

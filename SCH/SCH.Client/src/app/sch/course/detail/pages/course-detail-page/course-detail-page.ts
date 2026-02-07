@@ -114,6 +114,7 @@ export class CourseDetailPage implements OnInit {
     const course: Course = {
       id: this.courseForm.value.id,
       name: this.courseForm.value.name,
+      rowVersion: this.course()?.rowVersion, // Include rowVersion for concurrency check
     };
 
     if (course.id > 0) {
@@ -126,6 +127,7 @@ export class CourseDetailPage implements OnInit {
             this.notification.success('Course updated successfully');
           },
           error: (error) => {
+            // Generic error message - specific errors handled by interceptor
             this.notification.error('Failed to update course');
           },
         })

@@ -185,6 +185,7 @@ export class StudentDetailPage implements OnInit {
       startDate: new Date(this.studentForm.value.startDate),
       image: image,
       isActive: true,
+      rowVersion: this.student()?.rowVersion, // Include rowVersion for concurrency check
     };
 
     if (student.id > 0) {
@@ -201,6 +202,7 @@ export class StudentDetailPage implements OnInit {
             this.notification.success('Student updated successfully');
           },
           error: (error) => {
+            // Generic error message - specific errors handled by interceptor
             this.notification.error('Failed to update student');
           },
         })

@@ -1,12 +1,13 @@
 namespace SCH.Models.Users.Entities
 {
     using SCH.Models.Common.AuditableEntities;
+    using SCH.Models.Common.ConcurrencyEntities;
 
     /// <summary>
     /// Domain user entity - contains domain-specific user information
     /// Id is the same as ApplicationUser.Id from Identity schema
     /// </summary>
-    public class User : IAuditableEntity
+    public class User : IAuditableEntity, IConcurrencyEntity
     {
         /// <summary>
         /// Unique identifier for the domain user (same as AspNetUsers.Id)
@@ -46,6 +47,11 @@ namespace SCH.Models.Users.Entities
         public int? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
 
+        // Concurrency control
+        /// <summary>
+        /// Row version for optimistic concurrency control
+        /// </summary>
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }
 

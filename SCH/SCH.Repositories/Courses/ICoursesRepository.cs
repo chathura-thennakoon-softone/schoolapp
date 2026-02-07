@@ -1,4 +1,4 @@
-﻿namespace SCH.Repositories.Courses
+namespace SCH.Repositories.Courses
 {
     using SCH.Models.Courses.Entities;
 
@@ -11,6 +11,11 @@
         Task<Course?> GetCourseAsync(int id);
 
         Task InsertCourseAsync(Course course);
+
+        /// <summary>
+        /// Updates a course with optimistic concurrency check
+        /// </summary>
+        void UpdateAsync(Course course);
 
         Task DeleteCourseAsync(int id);
     }

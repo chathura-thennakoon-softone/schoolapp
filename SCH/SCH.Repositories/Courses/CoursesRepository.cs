@@ -1,24 +1,23 @@
-﻿namespace SCH.Repositories.Courses
+namespace SCH.Repositories.Courses
 {
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Courses.Entities;
+    using SCH.Repositories.Common;
     using SCH.Repositories.DbContexts;
     using System.Collections.Generic;
 
-    internal class CoursesRepository: ICoursesRepository
+    internal class CoursesRepository : BaseRepository<Course, SCHContext>, ICoursesRepository
     {
-        private readonly SCHContext context;
-
-        public CoursesRepository(SCHContext context) 
+        public CoursesRepository(SCHContext context) : base(context)
         {
-            this.context = context;
         }
 
         public async Task<List<Course>> GetCoursesAsync()
         {
 
-            List<Course> courses = await context
+            List<Course> courses = await Context
                 .Course
+                .AsNoTracking()
                 .ToListAsync();
 
             return courses;
@@ -28,8 +27,9 @@
             List<int> coursesIds)
         {
 
-            List<Course> courses = await context
+            List<Course> courses = await Context
                 .Course
+                .AsNoTracking()
                 .Where(c => coursesIds.Contains(c.Id))
                 .ToListAsync();
 
@@ -38,26 +38,33 @@
 
         public async Task<Course?> GetCourseAsync(int id)
         {
-            Course? course = await context
-                .Course.SingleOrDefaultAsync(s => s.Id == id);
+            Course? course = await Context
+                .Course
+                .AsNoTracking()
+                .SingleOrDefaultAsync(s => s.Id == id);
 
             return course;
         }
 
         public async Task InsertCourseAsync(Course course)
         {                                     
-            await context.Course.AddAsync(course);
+            await Context.Course.AddAsync(course);
+        }
+
+        public void UpdateAsync(Course course)
+        {
+            UpdateWithConcurrency(course);
         }
 
         public async Task DeleteCourseAsync(int id)
         {
 
-            Course? courseEntity = await context
+            Course? courseEntity = await Context
                 .Course.SingleOrDefaultAsync(s => s.Id == id);
 
             if (courseEntity != null)
             {
-                context.Course.Remove(courseEntity);
+                Context.Course.Remove(courseEntity);
             }
         }
     }

@@ -8,4 +8,10 @@ export interface Student {
     image: string | null;
     startDate: Date | null;
     isActive: boolean;
+    
+    /**
+     * Row version for optimistic concurrency control
+     * Base64-encoded byte array from backend
+     */
+    rowVersion?: string;
 }

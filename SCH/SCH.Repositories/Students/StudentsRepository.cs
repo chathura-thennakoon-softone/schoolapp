@@ -1,24 +1,22 @@
-﻿namespace SCH.Repositories.Students
+namespace SCH.Repositories.Students
 {
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Students.Entities;
+    using SCH.Repositories.Common;
     using SCH.Repositories.DbContexts;
-    using System.Collections.Generic;
 
-    internal class StudentsRepository: IStudentsRepository
+    internal class StudentsRepository : BaseRepository<Student, SCHContext>, IStudentsRepository
     {
-        private readonly SCHContext context;
-
-        public StudentsRepository(SCHContext context) 
+        public StudentsRepository(SCHContext context) : base(context)
         {
-            this.context = context;
         }
 
         public async Task<List<Student>> GetStudentsAsync(bool? isActive)
         {
 
-            List<Student> students = await context
+            List<Student> students = await Context
                 .Student
+                .AsNoTracking()
                 .Where(s => !isActive.HasValue || s.IsActive == isActive)
                 .ToListAsync();
 
@@ -27,8 +25,9 @@
 
         public async Task<Student?> GetStudentAsync(int id)
         {
-            Student? student = await context
+            Student? student = await Context
                 .Student
+                .AsNoTracking()
                 .Include(s => s.StudentCourseMaps)
                 .ThenInclude(sc => sc.Course)
                 .SingleOrDefaultAsync(s => s.Id == id);
@@ -38,18 +37,23 @@
 
         public async Task InsertStudentAsync(Student student)
         {                                     
-            await context.Student.AddAsync(student);
+            await Context.Student.AddAsync(student);
+        }
+
+        public void UpdateAsync(Student student)
+        {
+            UpdateWithConcurrency(student);
         }
 
         public async Task DeleteStudentAsync(int id)
         {
 
-            Student? studentEntity = await context
+            Student? studentEntity = await Context
                 .Student.SingleOrDefaultAsync(s => s.Id == id);
 
             if (studentEntity != null)
             {
-                context.Student.Remove(studentEntity);
+                Context.Student.Remove(studentEntity);
             }
         }
     }

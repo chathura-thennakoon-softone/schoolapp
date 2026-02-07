@@ -54,6 +54,12 @@ namespace SCH.Models.Auth.ClientDtos
         /// Last login date
         /// </summary>
         public DateTime? LastLoginDate { get; set; }
+
+        /// <summary>
+        /// Concurrency stamp for optimistic concurrency control
+        /// Must be sent back when updating to detect concurrent modifications
+        /// </summary>
+        public string? ConcurrencyStamp { get; set; }
     }
 }
 

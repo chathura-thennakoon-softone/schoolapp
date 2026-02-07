@@ -1,9 +1,11 @@
-﻿namespace SCH.Core.ErrorHandling
+namespace SCH.Core.ErrorHandling
 {
     using Microsoft.AspNetCore.Diagnostics;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using SCH.Shared.Exceptions;
+    using System.Collections;
     using System.Net;
 
     public class AppExceptionHandler : IExceptionHandler
@@ -23,12 +25,27 @@
             AppErrorContent appErrorContent;
             HttpStatusCode statusCode;
 
-            if (exception is SCHException sCHException)
+            // Handle DbUpdateConcurrencyException - optimistic concurrency conflict
+            if (exception is DbUpdateConcurrencyException)
+            {
+                statusCode = HttpStatusCode.Conflict;
+                appErrorContent = new AppErrorContent
+                {
+                    Message = "The record you attempted to update was modified by another user. " +
+                             "Please refresh and try again.",
+                    Data = new Dictionary<string, object>
+                    {
+                        ["SCHErrorNumber"] = SCHErrorNumber.ConcurrencyConflict
+                    }
+                };
+            }
+            else if (exception is SCHException sCHException)
             {
 
                 appErrorContent = new AppErrorContent
                 {
-                    Message = sCHException.Message
+                    Message = sCHException.Message,
+                    Data = sCHException.Data
                 };
 
 

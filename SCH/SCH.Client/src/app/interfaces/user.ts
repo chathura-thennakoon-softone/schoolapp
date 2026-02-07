@@ -12,5 +12,10 @@ export interface User {
   isActive: boolean;
   createdDate: string;
   lastLoginDate?: string;
+  
+  /**
+   * Concurrency stamp for optimistic concurrency control
+   */
+  concurrencyStamp?: string;
 }
 

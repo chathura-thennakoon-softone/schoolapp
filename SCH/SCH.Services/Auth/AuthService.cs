@@ -165,7 +165,8 @@ namespace SCH.Services.Auth
                     Roles = roles.ToList(),
                     IsActive = user.IsActive,
                     CreatedDate = user.CreatedDate,
-                    LastLoginDate = user.LastLoginDate
+                    LastLoginDate = user.LastLoginDate,
+                    ConcurrencyStamp = user.ConcurrencyStamp
                 }
             };
         }
@@ -387,7 +388,8 @@ namespace SCH.Services.Auth
                     Roles = roles.ToList(),
                     IsActive = user.IsActive,
                     CreatedDate = user.CreatedDate,
-                    LastLoginDate = user.LastLoginDate
+                    LastLoginDate = user.LastLoginDate,
+                    ConcurrencyStamp = user.ConcurrencyStamp
                 }
             };
         }

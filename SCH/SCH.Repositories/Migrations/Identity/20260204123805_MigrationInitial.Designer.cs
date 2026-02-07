@@ -12,8 +12,8 @@ using SCH.Repositories.DbContexts;
 namespace SCH.Repositories.Migrations.Identity
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20260204061325_MigrationName")]
-    partial class MigrationName
+    [Migration("20260204123805_MigrationInitial")]
+    partial class MigrationInitial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -313,6 +313,12 @@ namespace SCH.Repositories.Migrations.Identity
 
                     b.Property<DateTime?>("RevokedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Token")
                         .IsRequired()

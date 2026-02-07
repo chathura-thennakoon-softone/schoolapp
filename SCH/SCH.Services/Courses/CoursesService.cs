@@ -1,4 +1,4 @@
-﻿namespace SCH.Services.Courses
+namespace SCH.Services.Courses
 {
     using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Courses.ClientDtos;
@@ -30,7 +30,8 @@
                 .Select(c => new CourseDto 
                 { 
                     Id = c.Id,
-                    Name = c.Name
+                    Name = c.Name,
+                    RowVersion = c.RowVersion
                 }).ToList();
 
             return courseDtos;
@@ -46,7 +47,8 @@
                 courseDto = new CourseDto
                 {
                     Id= course.Id,
-                    Name = course.Name
+                    Name = course.Name,
+                    RowVersion = course.RowVersion
                 };
             }
 
@@ -79,8 +81,13 @@
                 throw SCHDomainException.NotFound();
             }
 
+            // Map DTO to entity
             courseEntity.Name = course.Name;
+            // Include RowVersion from frontend for concurrency check
+            courseEntity.RowVersion = course.RowVersion ?? courseEntity.RowVersion;
 
+            // Repository handles concurrency check
+            coursesRepository.UpdateAsync(courseEntity);
             await unitOfWork.SaveChangesAsync();
         }
 

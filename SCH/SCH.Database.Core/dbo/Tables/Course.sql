@@ -5,10 +5,13 @@
     [CreatedDate]  DATETIME2 (7)  NOT NULL,
     [ModifiedBy]   INT            NULL,
     [ModifiedDate] DATETIME2 (7)  NULL,
+    [RowVersion]   ROWVERSION     NOT NULL,
     CONSTRAINT [PK_Course] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Course_User_CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[User] ([Id]),
     CONSTRAINT [FK_Course_User_ModifiedBy] FOREIGN KEY ([ModifiedBy]) REFERENCES [dbo].[User] ([Id])
 );
+
+
 
 
 GO

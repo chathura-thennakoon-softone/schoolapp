@@ -1,9 +1,10 @@
 namespace SCH.Models.Students.Entities
 {
     using SCH.Models.Common.AuditableEntities;
+    using SCH.Models.Common.ConcurrencyEntities;
     using SCH.Models.StudentCourseMap.Entities;
 
-    public class Student : IAuditableEntity
+    public class Student : IAuditableEntity, IConcurrencyEntity
     {
         public int Id { get; set; }
 
@@ -30,5 +31,11 @@ namespace SCH.Models.Students.Entities
         public DateTime CreatedDate { get; set; }
         public int? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
+
+        // Concurrency control
+        /// <summary>
+        /// Row version for optimistic concurrency control
+        /// </summary>
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

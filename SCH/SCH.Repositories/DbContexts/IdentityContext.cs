@@ -41,6 +41,10 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ModifiedBy)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Concurrency control - ConcurrencyStamp inherited from IdentityUser
+                entity.Property(e => e.ConcurrencyStamp)
+                    .IsConcurrencyToken();
             });
 
             // Configure ApplicationRole
@@ -110,6 +114,11 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ParentTokenId)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Concurrency control
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
             });
         }
     }

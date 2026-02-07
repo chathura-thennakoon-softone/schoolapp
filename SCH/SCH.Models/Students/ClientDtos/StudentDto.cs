@@ -1,4 +1,4 @@
-﻿namespace SCH.Models.Students.ClientDtos
+namespace SCH.Models.Students.ClientDtos
 {
     using SCH.Models.StudentCourseMap.ClientDtos;
 
@@ -24,5 +24,11 @@
 
         public List<StudentCourseMapDto> Courses { get; set; } 
             = new List<StudentCourseMapDto>();
+
+        /// <summary>
+        /// Row version for optimistic concurrency control
+        /// Must be sent back when updating to detect concurrent modifications
+        /// </summary>
+        public byte[]? RowVersion { get; set; }
     }
 }

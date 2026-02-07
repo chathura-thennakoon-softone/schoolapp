@@ -1,11 +1,12 @@
 namespace SCH.Models.Auth.Entities
 {
     using SCH.Models.Auth.Enums;
+    using SCH.Models.Common.ConcurrencyEntities;
 
     /// <summary>
     /// Represents a refresh token for JWT authentication
     /// </summary>
-    public class RefreshToken
+    public class RefreshToken : IConcurrencyEntity
     {
         /// <summary>
         /// Unique identifier for the refresh token
@@ -98,6 +99,12 @@ namespace SCH.Models.Auth.Entities
         /// Checks if the token is valid (not expired, not used, not revoked)
         /// </summary>
         public bool IsValid => !IsUsed && !IsRevoked && ExpiryDate > DateTime.UtcNow;
+
+        // Concurrency control
+        /// <summary>
+        /// Row version for optimistic concurrency control
+        /// </summary>
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }
 

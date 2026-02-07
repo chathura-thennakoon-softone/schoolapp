@@ -2,11 +2,13 @@ namespace SCH.Models.Auth.Entities
 {
     using Microsoft.AspNetCore.Identity;
     using SCH.Models.Common.AuditableEntities;
+    using SCH.Models.Common.ConcurrencyEntities;
 
     /// <summary>
     /// Represents an application user with custom properties
+    /// ConcurrencyStamp is inherited from IdentityUser for optimistic concurrency control
     /// </summary>
-    public class ApplicationUser : IdentityUser<int>, IIdentityAuditableEntity
+    public class ApplicationUser : IdentityUser<int>, IIdentityAuditableEntity, IIdentityConcurrencyEntity
     {
         /// <summary>
         /// User's first name

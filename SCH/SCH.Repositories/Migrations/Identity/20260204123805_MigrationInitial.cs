@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SCH.Repositories.Migrations.Identity
 {
     /// <inheritdoc />
-    public partial class MigrationName : Migration
+    public partial class MigrationInitial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -218,7 +218,8 @@ namespace SCH.Repositories.Migrations.Identity
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UsedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RevokedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    RevokedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {

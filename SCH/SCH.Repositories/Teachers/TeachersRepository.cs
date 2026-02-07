@@ -2,21 +2,20 @@ namespace SCH.Repositories.Teachers
 {
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Teachers.Entities;
+    using SCH.Repositories.Common;
     using SCH.Repositories.DbContexts;
 
-    internal class TeachersRepository: ITeachersRepository
+    internal class TeachersRepository : BaseRepository<Teacher, SCHContext>, ITeachersRepository
     {
-        private readonly SCHContext context;
-
-        public TeachersRepository(SCHContext context)
+        public TeachersRepository(SCHContext context) : base(context)
         {
-            this.context = context;
         }
 
         public async Task<List<Teacher>> GetTeachersAsync()
         {
-            List<Teacher> teachers = await context
+            List<Teacher> teachers = await Context
                 .Teacher
+                .AsNoTracking()
                 .ToListAsync();
 
             return teachers;
@@ -24,25 +23,32 @@ namespace SCH.Repositories.Teachers
 
         public async Task<Teacher?> GetTeacherAsync(int id)
         {
-            Teacher? teacher = await context
-                .Teacher.SingleOrDefaultAsync(s => s.Id == id);
+            Teacher? teacher = await Context
+                .Teacher
+                .AsNoTracking()
+                .SingleOrDefaultAsync(s => s.Id == id);
 
             return teacher;
         }
 
         public async Task InsertTeacherAsync(Teacher teacher)
         {
-            await context.Teacher.AddAsync(teacher);
+            await Context.Teacher.AddAsync(teacher);
+        }
+
+        public void UpdateAsync(Teacher teacher)
+        {
+            UpdateWithConcurrency(teacher);
         }
 
         public async Task DeleteTeacherAsync(int id)
         {
-            Teacher? teacherEntity = await context
+            Teacher? teacherEntity = await Context
                 .Teacher.SingleOrDefaultAsync(s => s.Id == id);
 
             if (teacherEntity != null)
             {
-                context.Teacher.Remove(teacherEntity);
+                Context.Teacher.Remove(teacherEntity);
             }
         }
     }

@@ -62,6 +62,11 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ModifiedBy)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Concurrency control
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
             });
 
             // Configure Student entity
@@ -86,6 +91,11 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ModifiedBy)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Concurrency control
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
             });
 
             // Configure Course entity
@@ -104,6 +114,11 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ModifiedBy)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Concurrency control
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
             });
 
             // Configure Teacher entity
@@ -122,8 +137,12 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ModifiedBy)
                     .OnDelete(DeleteBehavior.NoAction);
-            });
 
+                // Concurrency control
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
+            });
 
             // Configure StudentCourseMap entity
             modelBuilder.Entity<StudentCourseMap>(entity =>
@@ -150,6 +169,11 @@ namespace SCH.Repositories.DbContexts
                     .WithMany()
                     .HasForeignKey(e => e.ModifiedBy)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Concurrency control
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .IsConcurrencyToken();
             });
         }
     }

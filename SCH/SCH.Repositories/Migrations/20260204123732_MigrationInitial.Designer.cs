@@ -12,8 +12,8 @@ using SCH.Repositories.DbContexts;
 namespace SCH.Repositories.Migrations
 {
     [DbContext(typeof(SCHContext))]
-    [Migration("20260204061409_MigrationName")]
-    partial class MigrationName
+    [Migration("20260204123732_MigrationInitial")]
+    partial class MigrationInitial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,12 @@ namespace SCH.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(400)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
@@ -81,6 +87,12 @@ namespace SCH.Repositories.Migrations
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.HasKey("StudentId", "CourseId");
 
@@ -132,6 +144,12 @@ namespace SCH.Repositories.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("SSN")
                         .HasColumnType("nvarchar(20)");
 
@@ -171,6 +189,12 @@ namespace SCH.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(400)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
@@ -206,6 +230,12 @@ namespace SCH.Repositories.Migrations
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 

@@ -28,7 +28,8 @@ namespace SCH.Services.Teachers
                 .Select(t => new TeacherDto
                 {
                     Id = t.Id,
-                    Name = t.Name
+                    Name = t.Name,
+                    RowVersion = t.RowVersion
                 }).ToList();
 
             return teacherDtos;
@@ -44,7 +45,8 @@ namespace SCH.Services.Teachers
                 teacherDto = new TeacherDto
                 {
                     Id = teacher.Id,
-                    Name = teacher.Name
+                    Name = teacher.Name,
+                    RowVersion = teacher.RowVersion
                 };
             }
 
@@ -75,8 +77,14 @@ namespace SCH.Services.Teachers
                 throw SCHDomainException.NotFound();
             }
 
+            // Map DTO to entity
             teacherEntity.Name = teacher.Name;
 
+            // Include RowVersion from frontend for concurrency check
+            teacherEntity.RowVersion = teacher.RowVersion ?? teacherEntity.RowVersion;
+
+            // Repository handles concurrency check
+            teachersRepository.UpdateAsync(teacherEntity);
             await unitOfWork.SaveChangesAsync();
         }
 

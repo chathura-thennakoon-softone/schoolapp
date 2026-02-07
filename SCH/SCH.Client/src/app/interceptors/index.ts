@@ -1,5 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { jwtInterceptor } from './jwt.interceptor';
+import { conflictErrorInterceptor } from './conflict-error.interceptor';
 import { unauthorizedInterceptor } from './unauthorized.interceptor';
 import { serverErrorInterceptor } from './server-error.interceptor';
 
@@ -13,11 +14,13 @@ import { serverErrorInterceptor } from './server-error.interceptor';
  */
 export const httpInterceptors: HttpInterceptorFn[] = [
   jwtInterceptor,
+  conflictErrorInterceptor,
   unauthorizedInterceptor,
   serverErrorInterceptor,
 ];
 
 // Export individual interceptors for testing or direct use
 export { jwtInterceptor } from './jwt.interceptor';
+export { conflictErrorInterceptor } from './conflict-error.interceptor';
 export { unauthorizedInterceptor } from './unauthorized.interceptor';
 export { serverErrorInterceptor } from './server-error.interceptor';
