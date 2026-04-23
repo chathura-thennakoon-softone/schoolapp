@@ -15,6 +15,7 @@ import { ImageApi } from '../../../../../sch/services/image-api';
 import { CommonModule, formatDate } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { SecureImage } from '../../../../../pipes/secure-image';
+import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
 
 @Component({
   selector: 'sch-student-detail-page',
@@ -22,7 +23,7 @@ import { SecureImage } from '../../../../../pipes/secure-image';
   templateUrl: './student-detail-page.html',
   styleUrl: './student-detail-page.scss',
 })
-export class StudentDetailPage implements OnInit {
+export class StudentDetailPage implements OnInit, HasUnsavedChanges {
   protected readonly studentId = signal(0);
   protected readonly student = signal<Student | null>(null);
   protected readonly isStudentLoading = signal(false);
@@ -274,6 +275,10 @@ export class StudentDetailPage implements OnInit {
         this.profileImageFile = file;
       }
     }
+  }
+
+  public hasUnsavedChanges(): boolean {
+    return this.studentForm.dirty || this.isImageChanged();
   }
 
   protected get formControls() {

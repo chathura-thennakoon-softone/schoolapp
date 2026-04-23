@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from '../../guards';
 
 export const courseRoutes: Routes = [
   {
@@ -19,5 +20,6 @@ export const courseRoutes: Routes = [
       import('./detail/pages/course-detail-page/course-detail-page').then(
         (m) => m.CourseDetailPage
       ),
+    canDeactivate: [unsavedChangesGuard],
   },
 ];

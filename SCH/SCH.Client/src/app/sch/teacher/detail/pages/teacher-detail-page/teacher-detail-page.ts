@@ -11,6 +11,7 @@ import {
 import { TeacherApi } from '../../../../../sch/services/teacher-api';
 import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
+import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
 
 
 @Component({
@@ -19,7 +20,7 @@ import { Notification } from '../../../../../services/notification';
   templateUrl: './teacher-detail-page.html',
   styleUrl: './teacher-detail-page.scss'
 })
-export class TeacherDetailPage implements OnInit {
+export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
   protected readonly teacherId = signal(0);
 
   protected readonly teacher = signal<Teacher | null>(null);
@@ -166,6 +167,11 @@ export class TeacherDetailPage implements OnInit {
         this.validateAllFormFields(control);
       }
     }
+  }
+
+  public hasUnsavedChanges(): boolean {
+
+    return this.teacherForm.dirty;
   }
 
   protected get formControls() {

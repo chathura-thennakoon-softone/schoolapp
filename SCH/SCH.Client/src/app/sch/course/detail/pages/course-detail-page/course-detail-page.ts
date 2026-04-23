@@ -11,6 +11,7 @@ import {
 import { CourseApi } from '../../../../../sch/services/course-api';
 import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
+import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
 
 
 @Component({
@@ -19,7 +20,7 @@ import { Notification } from '../../../../../services/notification';
   templateUrl: './course-detail-page.html',
   styleUrl: './course-detail-page.scss'
 })
-export class CourseDetailPage implements OnInit {
+export class CourseDetailPage implements OnInit, HasUnsavedChanges {
   protected readonly courseId = signal(0);
 
   protected readonly course = signal<Course | null>(null);
@@ -111,6 +112,7 @@ export class CourseDetailPage implements OnInit {
 
 
   private saveCourse(): void {
+
     const course: Course = {
       id: this.courseForm.value.id,
       name: this.courseForm.value.name,
@@ -166,6 +168,11 @@ export class CourseDetailPage implements OnInit {
         this.validateAllFormFields(control);
       }
     }
+  }
+
+  public hasUnsavedChanges(): boolean {
+
+    return this.courseForm.dirty;
   }
 
   protected get formControls() {
