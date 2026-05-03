@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SCH.Core\SCH.Core.csproj" />
     <ProjectReference Include="..\SCH.Services\SCH.Services.csproj" />
+    <ProjectReference Include="..\SCH.Shared\SCH.Shared.csproj" />
   </ItemGroup>
 
 </Project>
