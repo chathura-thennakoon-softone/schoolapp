@@ -1,5 +1,6 @@
 namespace SCH.Services.Courses
 {
+    using AutoMapper;
     using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Courses.ClientDtos;
     using SCH.Models.Courses.Entities;
@@ -11,14 +12,17 @@ namespace SCH.Services.Courses
     {
         private readonly ISCHUnitOfWork unitOfWork;
         private readonly ICoursesRepository coursesRepository;
+        private readonly IMapper mapper;
 
 
         public CoursesService(
             ISCHUnitOfWork unitOfWork,
-            ICoursesRepository coursesRepository) 
+            ICoursesRepository coursesRepository,
+            IMapper mapper) 
         { 
             this.unitOfWork = unitOfWork;
             this.coursesRepository = coursesRepository;
+            this.mapper = mapper;
         }
 
         public async Task<List<CourseDto>> GetCoursesAsync()
@@ -26,33 +30,13 @@ namespace SCH.Services.Courses
             List<Course> courses = await coursesRepository
                 .GetCoursesAsync();
 
-            List<CourseDto> courseDtos = courses
-                .Select(c => new CourseDto 
-                { 
-                    Id = c.Id,
-                    Name = c.Name,
-                    RowVersion = c.RowVersion
-                }).ToList();
-
-            return courseDtos;
+            return mapper.Map<List<CourseDto>>(courses);
         }
 
         public async Task<CourseDto?> GetCourseAsync(int id)
         {
-            CourseDto? courseDto = null;
             Course? course = await coursesRepository.GetCourseAsync(id);
-
-            if (course != null)
-            {
-                courseDto = new CourseDto
-                {
-                    Id= course.Id,
-                    Name = course.Name,
-                    RowVersion = course.RowVersion
-                };
-            }
-
-            return courseDto;
+            return course == null ? null : mapper.Map<CourseDto>(course);
         }
 
 

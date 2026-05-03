@@ -5,6 +5,7 @@ namespace SCH.Services.Students
     using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Students.ClientDtos;
     using SCH.Models.Students.Entities;
+    using AutoMapper;
     using SCH.Repositories.Courses;
     using SCH.Repositories.StudentCourseMap;
     using SCH.Repositories.Students;
@@ -18,18 +19,21 @@ namespace SCH.Services.Students
         private readonly IStudentsRepository studentsRepository;
         private readonly ICoursesRepository coursesRepository;
         private readonly IStudentCourseMapRepository studentCourseMapRepository;
+        private readonly IMapper mapper;
 
 
         public StudentsService(
             ISCHUnitOfWork unitOfWork,
             IStudentsRepository studentsRepository,
             ICoursesRepository coursesRepository,
-            IStudentCourseMapRepository studentCourseMapRepository) 
+            IStudentCourseMapRepository studentCourseMapRepository,
+            IMapper mapper) 
         { 
             this.unitOfWork = unitOfWork;
             this.studentsRepository = studentsRepository;
             this.coursesRepository = coursesRepository;
             this.studentCourseMapRepository = studentCourseMapRepository;
+            this.mapper = mapper;
         }
 
         public async Task<List<StudentDto>> GetStudentsAsync(bool? isActive)
@@ -37,57 +41,19 @@ namespace SCH.Services.Students
             List<Student> students = await studentsRepository
                 .GetStudentsAsync(isActive);
 
-            List<StudentDto> studentDtos = students
-                .Select(s => new StudentDto 
-                { 
-                    Id = s.Id,
-                    FirstName = s.FirstName,
-                    LastName = s.LastName,
-                    Email = s.Email,
-                    Image = s.Image,
-                    IsActive = s.IsActive,
-                    PhoneNumber = s.PhoneNumber,
-                    SSN = s.SSN,
-                    StartDate = s.StartDate,
-                    RowVersion = s.RowVersion
-                }).ToList();
-
-            return studentDtos;
+            return mapper.Map<List<StudentDto>>(students);
         }
 
         public async Task<StudentDto?> GetStudentAsync(int id)
         {
-            StudentDto? studentDto = null;
             Student? student = await studentsRepository.GetStudentAsync(id);
 
-            if (student != null)
+            if (student == null)
             {
-                studentDto = new StudentDto
-                {
-                    Id= student.Id,
-                    FirstName = student.FirstName,
-                    LastName = student.LastName,
-                    Email = student.Email,
-                    Image = student.Image,
-                    IsActive = student.IsActive,
-                    PhoneNumber = student.PhoneNumber,
-                    SSN = student.SSN,
-                    StartDate = student.StartDate,
-                    RowVersion = student.RowVersion,
-                    Courses = student.StudentCourseMaps
-                        .Select(scm => new StudentCourseMapDto
-                        {
-                            StudentId = scm.StudentId,
-                            CourseId = scm.CourseId,
-                            EnrollmentDate = scm.EnrollmentDate,
-                            CourseName = scm.Course!.Name,
-                            StudentFirstName = student.FirstName,
-                            StudentLastName = student.LastName
-                        }).ToList()
-                };
+                return null;
             }
 
-            return studentDto;
+            return mapper.Map<StudentDto>(student);
         }
 
         public async Task<int> InsertStudentAsync(StudentDto student)
@@ -188,18 +154,7 @@ namespace SCH.Services.Students
             List<StudentCourseMap> courses = await studentCourseMapRepository
                 .GetStudentCourseMapsByStudentAsync(id);
 
-            List<StudentCourseMapDto> courseDtos = courses
-                .Select(c => new StudentCourseMapDto
-                {
-                    StudentId = c.StudentId,
-                    CourseId = c.CourseId,
-                    EnrollmentDate = c.EnrollmentDate,
-                    CourseName = c.Course!.Name,
-                    StudentFirstName = c.Student!.FirstName,
-                    StudentLastName = c.Student.LastName
-                }).ToList();
-
-            return courseDtos;
+            return mapper.Map<List<StudentCourseMapDto>>(courses);
         }
 
         public async Task InsertCourseAsync(StudentCourseMapDto studentCourseMap)

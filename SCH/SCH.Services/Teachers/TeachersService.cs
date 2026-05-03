@@ -1,5 +1,6 @@
 namespace SCH.Services.Teachers
 {
+    using AutoMapper;
     using SCH.Models.Teachers.ClientDtos;
     using SCH.Models.Teachers.Entities;
     using SCH.Repositories.Teachers;
@@ -10,13 +11,16 @@ namespace SCH.Services.Teachers
     {
         private readonly ISCHUnitOfWork unitOfWork;
         private readonly ITeachersRepository teachersRepository;
+        private readonly IMapper mapper;
 
         public TeachersService(
             ISCHUnitOfWork unitOfWork,
-            ITeachersRepository teachersRepository)
+            ITeachersRepository teachersRepository,
+            IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
             this.teachersRepository = teachersRepository;
+            this.mapper = mapper;
         }
 
         public async Task<List<TeacherDto>> GetTeachersAsync()
@@ -24,33 +28,13 @@ namespace SCH.Services.Teachers
             List<Teacher> teachers = await teachersRepository
                 .GetTeachersAsync();
 
-            List<TeacherDto> teacherDtos = teachers
-                .Select(t => new TeacherDto
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    RowVersion = t.RowVersion
-                }).ToList();
-
-            return teacherDtos;
+            return mapper.Map<List<TeacherDto>>(teachers);
         }
 
         public async Task<TeacherDto?> GetTeacherAsync(int id)
         {
-            TeacherDto? teacherDto = null;
             Teacher? teacher = await teachersRepository.GetTeacherAsync(id);
-
-            if (teacher != null)
-            {
-                teacherDto = new TeacherDto
-                {
-                    Id = teacher.Id,
-                    Name = teacher.Name,
-                    RowVersion = teacher.RowVersion
-                };
-            }
-
-            return teacherDto;
+            return teacher == null ? null : mapper.Map<TeacherDto>(teacher);
         }
 
         public async Task<int> InsertTeacherAsync(TeacherDto teacher)
